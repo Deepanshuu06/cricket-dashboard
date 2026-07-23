@@ -15,7 +15,7 @@ const WinPrediction = ({ winPredictionData, onClose }) => {
   const rates = data?.win_prediction?.projected_score?.rates || ['9.00', '9.00', '10.00', '11.00'];
   const scores = data?.win_prediction?.projected_score?.scores || ['180', '180', '190', '200'];
 
-
+ 
 
   return (
     <motion.div 

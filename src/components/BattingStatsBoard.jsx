@@ -18,7 +18,6 @@ const BattingStatsBoard = ({ onBatsmanClick, onRunClick }) => {
   const yet_to_bat = data?.yet_to_bat;
   const lastWicket = data?.last_wicket;
   
-  // FIX: Create a stable boolean to check if lastWicket exists
   const hasLastWicket = !!lastWicket; 
 
   const prevStrikerRef = useRef(null);
@@ -75,7 +74,6 @@ const BattingStatsBoard = ({ onBatsmanClick, onRunClick }) => {
     prevStrikerRef.current = currentStriker;
   }, [batsman1?.onStrike, batsman2?.onStrike, batsman1?.name, batsman2?.name]);
 
-  // FIX: Use the stable boolean in the dependency array so socket updates don't clear the timer
   useEffect(() => {
     if (!hasLastWicket) {
       setShowLastWicket(false);
@@ -87,7 +85,7 @@ const BattingStatsBoard = ({ onBatsmanClick, onRunClick }) => {
     }, 5000);
 
     return () => clearInterval(intervalId);
-  }, [hasLastWicket]); // <--- This is the crucial change
+  }, [hasLastWicket]);
 
   if (!data) {
     return (
@@ -131,96 +129,140 @@ const BattingStatsBoard = ({ onBatsmanClick, onRunClick }) => {
           0% { transform: translateX(-100%) skewX(-15deg); }
           100% { transform: translateX(200%) skewX(-15deg); }
         }
+
+        /* --- NEW ANIMATIONS FOR BORDER & SHINE --- */
+        @keyframes spin-border {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        .running-border-container {
+          position: relative;
+          padding: 3px; 
+          overflow: hidden;
+          background: #000;
+        }
+        .running-border-container::before {
+          content: '';
+          position: absolute;
+          top: -100%;
+          left: -100%;
+          width: 300%;
+          height: 300%;
+          /* A vibrant spinning gradient trailing off into transparency */
+          background: conic-gradient(from 90deg, transparent 0%, transparent 60%, #38bdf8 80%, #fbbf24 100%);
+          animation: spin-border 3.5s linear infinite;
+          z-index: 0;
+        }
+        .running-border-inner {
+          position: relative;
+          z-index: 10;
+          display: flex;
+          flex-direction: column;
+          background-color: #172554; /* Match bg-blue-950 */
+        }
+        @keyframes soft-sweep {
+          0% { transform: translateX(-100%) skewX(-15deg); }
+          40% { transform: translateX(300%) skewX(-15deg); }
+          100% { transform: translateX(300%) skewX(-15deg); } /* Pause interval */
+        }
       `}</style>
 
-      {/* --- BATTING SECTION --- */}
-      <div className="h-[70px] flex items-center bg-gradient-to-b from-orange-500 to-orange-700 text-white font-black px-6 text-[45px] tracking-wider uppercase border-b-[4px] border-black shadow-[inset_0_4px_8px_rgba(255,255,255,0.3)] relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shine_3s_infinite]" />
-        <div onClick={onBatsmanClick} className="w-[42%] cursor-pointer">Batsman</div>
-        <div onClick={onRunClick} className="w-[10%] text-center cursor-pointer">R</div>
-        <div className="w-[10%] text-center">B</div>
-        <div className="w-[10%] text-center">4s</div>
-        <div className="w-[10%] text-center">6s</div>
-        <div  className="w-[18%] text-right cursor-pointer">S.R</div>
+      {/* --- BATTING SECTION (Wrapped in Running Border) --- */}
+      <div className="running-border-container shadow-[0_4px_15px_rgba(0,0,0,0.5)]">
+        <div className="running-border-inner">
+          
+          <div className="h-[70px] flex items-center bg-gradient-to-b from-orange-500 to-orange-700 text-white font-black px-6 text-[45px] tracking-wider uppercase border-b-[4px] border-black shadow-[inset_0_4px_8px_rgba(255,255,255,0.3)] relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shine_3s_infinite]" />
+            <div onClick={onBatsmanClick} className="w-[42%] cursor-pointer z-10">Batsman</div>
+            <div onClick={onRunClick} className="w-[10%] text-center cursor-pointer z-10">R</div>
+            <div className="w-[10%] text-center z-10">B</div>
+            <div className="w-[10%] text-center z-10">4s</div>
+            <div className="w-[10%] text-center z-10">6s</div>
+            <div className="w-[18%] text-right cursor-pointer z-10">S.R</div>
+          </div>
+
+          {batters.map((batter, idx) => (
+            <motion.div
+              layout
+              key={batter.name || idx}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: idx * 0.1 }}
+              className="relative h-[120px] flex items-center bg-gradient-to-b from-blue-700 to-blue-900 text-white font-bold px-6 border-b-[4px] border-blue-950 overflow-hidden group"
+            >
+              {/* Subtle Lightweight Shine for rows */}
+              <div className="absolute inset-0 z-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-[soft-sweep_4s_infinite_ease-in-out] pointer-events-none" />
+
+              <AnimatePresence>
+                {batter.onStrike && overlay && (
+                  <motion.div
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 1.5, opacity: 0 }}
+                    transition={{ type: "spring", bounce: 0.5 }}
+                    className={`absolute inset-0 z-20 flex items-center justify-center ${overlay.bgColor}`}
+                  >
+                    <span className="text-[75px] font-black tracking-widest uppercase drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
+                      {String(overlay.text)}
+                    </span>
+                  </motion.div>
+                )}
+
+                {batter.onStrike && strikeChangeOverlay && !overlay && (
+                  <motion.div
+                    initial={{ x: "100%" }}
+                    animate={{ x: 0 }}
+                    exit={{ x: "-100%" }}
+                    transition={{ type: "tween", duration: 0.3 }}
+                    className="absolute inset-0 z-20 flex items-center justify-center bg-gradient-to-r from-orange-600 to-orange-400 text-white"
+                  >
+                    <span className="text-[65px] font-black tracking-widest uppercase drop-shadow-lg">
+                      STRIKE CHANGE
+                    </span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <div className="w-[42%] flex items-center gap-3 text-[65px] tracking-tight whitespace-nowrap leading-none z-10">
+                {batter.onStrike ? (
+                  <motion.div
+                    layoutId="striker-bar"
+                    className="w-[20px] h-[80px] bg-green-500 rounded-sm mr-1 shadow-[0_0_15px_rgba(34,197,94,0.6)]"
+                  />
+                ) : (
+                  <div className="w-[20px] h-[80px] bg-transparent mr-1" />
+                )}
+
+                {String(batter.name || "")}
+                {batter.onStrike && (
+                  <motion.div
+                    animate={{ rotate: [-45, -25, -45] }}
+                    transition={{ repeat: Infinity, duration: 1.5 }}
+                  >
+                    <GiCricketBat className="text-yellow-400 drop-shadow-md ml-2" size={45} />
+                  </motion.div>
+                )}
+              </div>
+
+              <div className="w-[10%] text-center text-[65px] font-black leading-none z-10">
+                {String(batter.runs || 0)}
+              </div>
+              <div className="w-[10%] text-center text-[55px] leading-none z-10">
+                ({String(batter.balls || 0)})
+              </div>
+              <div className="w-[10%] text-center text-[55px] leading-none z-10">
+                {String(batter.fours || 0)}
+              </div>
+              <div className="w-[10%] text-center text-[55px] leading-none z-10">
+                {String(batter.sixes || 0)}
+              </div>
+              <div className="w-[18%] text-right text-[60px] font-black tracking-tighter leading-none z-10 text-yellow-300">
+                {String(batter.strikeRate || 0)}
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </div>
-
-      {batters.map((batter, idx) => (
-        <motion.div
-          layout
-          key={batter.name || idx}
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: idx * 0.1 }}
-          className="relative h-[120px] flex items-center bg-gradient-to-b from-blue-700 to-blue-900 text-white font-bold px-6 border-b-[4px] border-blue-950 overflow-hidden"
-        >
-          <AnimatePresence>
-            {batter.onStrike && overlay && (
-              <motion.div
-                initial={{ scale: 0.5, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 1.5, opacity: 0 }}
-                transition={{ type: "spring", bounce: 0.5 }}
-                className={`absolute inset-0 z-20 flex items-center justify-center ${overlay.bgColor}`}
-              >
-                <span className="text-[75px] font-black tracking-widest uppercase drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
-                  {String(overlay.text)}
-                </span>
-              </motion.div>
-            )}
-
-            {batter.onStrike && strikeChangeOverlay && !overlay && (
-              <motion.div
-                initial={{ x: "100%" }}
-                animate={{ x: 0 }}
-                exit={{ x: "-100%" }}
-                transition={{ type: "tween", duration: 0.3 }}
-                className="absolute inset-0 z-20 flex items-center justify-center bg-gradient-to-r from-orange-600 to-orange-400 text-white"
-              >
-                <span className="text-[65px] font-black tracking-widest uppercase drop-shadow-lg">
-                  STRIKE CHANGE
-                </span>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <div className="w-[42%] flex items-center gap-3 text-[65px] tracking-tight whitespace-nowrap leading-none z-10">
-            {batter.onStrike ? (
-              <motion.div
-                layoutId="striker-bar"
-                className="w-[20px] h-[80px] bg-green-500 rounded-sm mr-1 shadow-[0_0_15px_rgba(34,197,94,0.6)]"
-              />
-            ) : (
-              <div className="w-[20px] h-[80px] bg-transparent mr-1" />
-            )}
-
-            {String(batter.name || "")}
-            {batter.onStrike && (
-              <motion.div
-                animate={{ rotate: [-45, -25, -45] }}
-                transition={{ repeat: Infinity, duration: 1.5 }}
-              >
-                <GiCricketBat className="text-yellow-400 drop-shadow-md ml-2" size={45} />
-              </motion.div>
-            )}
-          </div>
-
-          <div className="w-[10%] text-center text-[65px] font-black leading-none z-10">
-            {String(batter.runs || 0)}
-          </div>
-          <div className="w-[10%] text-center text-[55px] leading-none z-10">
-            ({String(batter.balls || 0)})
-          </div>
-          <div className="w-[10%] text-center text-[55px] leading-none z-10">
-            {String(batter.fours || 0)}
-          </div>
-          <div className="w-[10%] text-center text-[55px] leading-none z-10">
-            {String(batter.sixes || 0)}
-          </div>
-          <div className="w-[18%] text-right text-[60px] font-black tracking-tighter leading-none z-10 text-yellow-300">
-            {String(batter.strikeRate || 0)}
-          </div>
-        </motion.div>
-      ))}
 
       {/* --- PROJECTED SCORE STRIP --- */}
       <div className="h-[65px] flex items-center justify-center bg-gradient-to-b from-red-700 to-red-900 border-b-[4px] border-black border-t-[2px] border-t-red-500 shadow-inner overflow-hidden">
@@ -291,7 +333,6 @@ const BattingStatsBoard = ({ onBatsmanClick, onRunClick }) => {
 
         <div className="w-[4px] h-[70px] bg-blue-950 rounded mx-2 shadow-inner" />
 
-        {/* --- DYNAMIC STATS TOGGLE (FIXED FOR OVERFLOW) --- */}
         <div className="w-[30%] flex items-center justify-center relative h-[95px] overflow-hidden px-2">
           <AnimatePresence mode="wait">
             <motion.div
