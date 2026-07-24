@@ -9,6 +9,7 @@ const socket = io("http://127.0.0.1:5009", {
 
 const useScoreStore = create((set) => {
   socket.on("score_update", (data) => {
+    console.log(`📥 Received from backend at: ${new Date().toISOString()}`);
     if (data && !data.error) {
       set((state) => {
         // THE MAGIC TRICK: 

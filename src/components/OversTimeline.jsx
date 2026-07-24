@@ -4,8 +4,8 @@ import useScoreStore from '../hooks/useScoreStore';
 
 const OversTimeline = () => {
   const data = useScoreStore((state) => state.liveData);
+  console.log('result_number:', data?.result_number);
 
-  
   // Safely extract stats
   const fours = data?.fours || 0;
   const sixes = data?.sixes || 0;
@@ -62,8 +62,12 @@ const OversTimeline = () => {
       text = "text-white";
     }
 
-    // Larger, brighter cyan glow for the scaled-up latest delivery
-    const glowClass = isLatest ? "shadow-[0_0_20px_4px_#00e5ff] border-[7px] border-[#00e5ff] z-10 shadow-lg" : "border-black/50 z-0";
+    // Larger, brighter cyan glow for the scaled-up latest delivery using animation
+    // Kept your original border-[7px] so sizes do not change
+    const glowClass = isLatest 
+      ? "border-[7px] border-[#00e5ff] z-10 animate-pulse-glow" 
+      : "border-[3px] border-black/50 z-0 shadow-[inset_0_2px_5px_rgba(255,255,255,0.4),0_5px_10px_rgba(0,0,0,0.6)]";
+      
     return `${bg} ${text} ${glowClass}`;
   };
 
@@ -77,11 +81,30 @@ const OversTimeline = () => {
         }
         .text-shadow-heavy { text-shadow: 3px 3px 5px rgba(0,0,0,0.9); }
         .ball-ellipse { border-radius: 50% / 50%; }
+
+        /* --- LIGHTWEIGHT ANIMATIONS ONLY --- */
+        @keyframes soft-sweep {
+          0% { transform: translateX(-100%) skewX(-20deg); }
+          35% { transform: translateX(300%) skewX(-20deg); }
+          100% { transform: translateX(300%) skewX(-20deg); } /* Pause for remainder of loop */
+        }
+
+        @keyframes pulse-glow {
+          0%, 100% { 
+            box-shadow: inset 0 2px 5px rgba(255,255,255,0.4), 0 0 15px 4px #00e5ff; 
+          }
+          50% { 
+            box-shadow: inset 0 2px 5px rgba(255,255,255,0.6), 0 0 25px 8px #00e5ff; 
+          }
+        }
+        
+        .animate-pulse-glow {
+          animation: pulse-glow 1.5s ease-in-out infinite;
+        }
       `}</style>
 
       {/* =========================================
           TOP ROW (Stats & Match Info)
-          Height increased to 55px, font bumped to 36px
       ========================================= */}
       <div className="flex h-[75px] w-full border-b-[3px] border-black">
         <div className="w-[340px] bg-[#0b1b36] flex items-center justify-center px-4 border-r-[4px] border-white/20">
@@ -89,22 +112,29 @@ const OversTimeline = () => {
             4s: {fours} <span className="text-gray-400 mx-2">|</span> 6s: {sixes}
           </span>
         </div>
-        <div className="flex-1 bg-gradient-to-r from-[#285596] to-[#1a3a6c] flex items-center overflow-hidden px-6 shadow-inner">
-          <span className="text-white font-condensed font-bold text-[36px] tracking-widest text-shadow-outline whitespace-nowrap uppercase">
-            {matchInfo}
+        <div className="flex-1 bg-gradient-to-r from-[#285596] to-[#1a3a6c] flex items-center overflow-hidden px-6 shadow-inner relative">
+          
+          {/* Subtle Shining overlay for Match Info */}
+          <div className="absolute inset-0 z-0 bg-gradient-to-r from-transparent via-white/15 to-transparent animate-[soft-sweep_5s_infinite_ease-in-out] pointer-events-none" />
+          
+          <span className="relative z-10 text-white font-condensed font-bold text-[36px] tracking-widest text-shadow-outline whitespace-nowrap uppercase">
+            {`CRR: ${data?.crr || 0} | RRR: ${data?.rrr || 0} `} 
           </span>
         </div>
       </div>
 
       {/* =========================================
           BOTTOM ROW (Subscribe & Recent Balls)
-          Height heavily increased to 85px to fit huge balls
       ========================================= */}
       <div className="flex h-[105px] w-full bg-[#03152d]">
         
         {/* Left Side: SUBSCRIBE Button Tab */}
-        <div className="w-[340px] bg-gradient-to-b from-[#4ba3e3] to-[#2573b9] flex items-center justify-center border-r-[5px] border-[#0a192f] shadow-[6px_0_15px_rgba(0,0,0,0.7)] z-20">
-          <span className="text-white font-condensed font-black text-[60px] tracking-widest uppercase text-shadow-heavy scale-y-110 pb-1">
+        <div className="relative w-[340px] bg-gradient-to-b from-[#4ba3e3] to-[#2573b9] flex items-center justify-center border-r-[5px] border-[#0a192f] shadow-[6px_0_15px_rgba(0,0,0,0.7)] z-20 overflow-hidden">
+          
+          {/* Slightly faster shine for the prominent subscribe button */}
+          <div className="absolute inset-0 z-0 bg-gradient-to-r from-transparent via-white/25 to-transparent animate-[soft-sweep_3.5s_infinite_ease-in-out] pointer-events-none" />
+          
+          <span className="relative z-10 text-white font-condensed font-black text-[60px] tracking-widest uppercase text-shadow-heavy scale-y-110 pb-1">
             SUBSCRIBE
           </span>
         </div>
@@ -112,7 +142,6 @@ const OversTimeline = () => {
         {/* Right Side: Recent Balls Timeline */}
         <div className="flex-1 flex items-center px-6 overflow-hidden relative">
           
-          {/* Increased gap from 6px to 14px for better spacing */}
           <div className="flex items-center gap-[14px] w-full justify-start overflow-hidden">
             <AnimatePresence initial={false}>
               {timelineItems.map((item, index) => {
@@ -147,12 +176,11 @@ const OversTimeline = () => {
                     className={`
                       relative flex items-center justify-center 
                       w-[75px] h-[65px] ball-ellipse font-condensed font-black leading-none
-                      border-[3px] shadow-[inset_0_2px_5px_rgba(255,255,255,0.4),0_5px_10px_rgba(0,0,0,0.6)]
                       ${getBallStyles(item.value, isLatest)}
                       ${isLongText ? 'text-[28px] tracking-tighter' : 'text-[38px]'}
                     `}
                   >
-                    <span className="mt-[4px]">{ballString}</span>
+                    <span className="mt-[4px] relative z-20">{ballString}</span>
                   </motion.div>
                 );
               })}

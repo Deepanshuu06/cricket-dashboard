@@ -12,7 +12,7 @@ const ScoreBanner = ({ onTeamClick , onScoreClick  }) => {
   // GRAB the data directly from Zustand
   const data = useScoreStore((state) => state.liveData);
 
-  console.log(data)
+
 
 
 

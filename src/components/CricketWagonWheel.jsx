@@ -52,7 +52,7 @@ export default function CricketWagonWheel() {
       removeTimer = setTimeout(() => {
         setShot(null);
         setFieldName('');
-      }, 5000);
+      }, 10000);
     };
 
     ground.addEventListener('pointerdown', handlePointerDown);
