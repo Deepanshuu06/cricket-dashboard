@@ -12,8 +12,8 @@ const ScoreBanner = ({ onTeamClick , onScoreClick  }) => {
   // GRAB the data directly from Zustand
   const data = useScoreStore((state) => state.liveData);
 
-
-
+  const team1Logo = "https://img1.hscicdn.com/image/upload/f_auto/lsci/db/PICTURES/CMS/412600/412621.png"; // India
+  const team2Logo = "https://upload.wikimedia.org/wikipedia/en/thumb/d/d7/Sunrisers_Leeds_Logo.svg/1280px-Sunrisers_Leeds_Logo.svg.png"; // England
 
 
   // Return early if no data is provided to prevent crashes
@@ -104,7 +104,7 @@ const ScoreBanner = ({ onTeamClick , onScoreClick  }) => {
               />
               <div className="absolute inset-[10px] bg-white rounded-full overflow-hidden flex items-center justify-center z-10 border-[4px] border-gray-200">
                 <img
-                  src="https://img1.hscicdn.com/image/upload/f_auto/lsci/db/PICTURES/CMS/412600/412621.png"
+                  src={team1Logo}
                   alt="India"
                   className="w-full h-full object-cover"
                 />
@@ -184,11 +184,11 @@ const ScoreBanner = ({ onTeamClick , onScoreClick  }) => {
               />
               <div className="absolute inset-[10px] bg-white rounded-full overflow-hidden flex items-center justify-center z-10 border-[4px] border-gray-200">
                 <img
-                  src="https://upload.wikimedia.org/wikipedia/en/thumb/d/d7/Sunrisers_Leeds_Logo.svg/1280px-Sunrisers_Leeds_Logo.svg.png"
-                  alt="England"
-                  className="w-full h-full object-cover"
-                  
-                />
+                      src={team2Logo}
+                      alt="team2"
+                      className="w-full h-full object-cover"
+                      
+                    />
               </div>
             </div>
           </div>
