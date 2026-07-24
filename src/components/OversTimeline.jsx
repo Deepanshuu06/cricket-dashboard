@@ -109,7 +109,8 @@ const OversTimeline = () => {
       <div className="flex h-[75px] w-full border-b-[3px] border-black">
         <div className="w-[340px] bg-[#0b1b36] flex items-center justify-center px-4 border-r-[4px] border-white/20">
           <span className="text-white font-condensed font-bold text-[36px] tracking-wide text-shadow-outline">
-            4s: {fours} <span className="text-gray-400 mx-2">|</span> 6s: {sixes}
+            {/* 4s: {fours} <span className="text-gray-400 mx-2">|</span> 6s: {sixes} */}
+            LIVE MATCH
           </span>
         </div>
         <div className="flex-1 bg-gradient-to-r from-[#285596] to-[#1a3a6c] flex items-center overflow-hidden px-6 shadow-inner relative">

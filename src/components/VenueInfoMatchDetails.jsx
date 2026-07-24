@@ -34,7 +34,7 @@ const VenueInfoMatchDetails = ({ onClose }) => {
 
   // 2. Fetch data (with global cache)
   useEffect(() => {
-    if (cachedVenueData) return;
+    // if (cachedVenueData) return;
 
     const fetchData = async () => {
       setLoading(true);
@@ -43,6 +43,7 @@ const VenueInfoMatchDetails = ({ onClose }) => {
         if (response.data) {
           cachedVenueData = response.data;
           setData(response.data);
+          console.log("Fetched venue & match details:", response.data);
         }
       } catch (error) {
         console.error("Error fetching venue & match details:", error);
@@ -165,8 +166,8 @@ const VenueInfoMatchDetails = ({ onClose }) => {
                       <div className="flex items-center gap-4 bg-[#0a1628] p-4 rounded-lg border border-gray-800">
                         <FaTv className="text-[#d4af37] text-3xl" />
                         <div>
-                          <div className="text-gray-400 text-xs font-bold uppercase">Broadcasters</div>
-                          <div className="text-white font-bold text-lg">{data.match_info?.broadcasters}</div>
+                          <div className="text-gray-400 text-xs font-bold uppercase">Subscribe</div>
+                          <div className="text-white font-bold text-lg">Get Live Updates</div>
                         </div>
                       </div>
                     </div>
@@ -202,7 +203,7 @@ const VenueInfoMatchDetails = ({ onClose }) => {
                           Pitch Report Summary
                         </h3>
                         <p className="text-gray-200 text-base leading-relaxed bg-[#0a1628] p-4 rounded-lg border border-gray-800">
-                          {data.pitch_report?.summary}
+                          {data.pitch_report?.summary} || {data.pitch_report?.text}
                         </p>
                       </div>
                     </motion.div>
