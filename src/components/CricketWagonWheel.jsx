@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function CricketWagonWheel() {
   const groundRef = useRef(null);
   const [shot, setShot] = useState(null);
-  const [fieldName, setFieldName] = useState('');
-  
+
   // Ground configuration constants
   const CENTER_X = 350;
   const CENTER_Y = 350;
@@ -13,7 +13,6 @@ export default function CricketWagonWheel() {
 
   useEffect(() => {
     let removeTimer = null;
-
     const ground = groundRef.current;
     if (!ground) return;
 
@@ -30,29 +29,22 @@ export default function CricketWagonWheel() {
       const distance = Math.sqrt(dx * dx + dy * dy);
       const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
 
-      // Calculate Field Name
       const name = getFieldName(endX, endY);
-      setFieldName(name);
 
-      // Set initial state for line animation
+      // We add a unique ID (Date.now()) so Framer Motion knows to restart the animation from the pitch
       setShot({
+        id: Date.now(),
         endX,
         endY,
         distance,
         angle,
-        showBall: false,
+        name,
       });
 
-      // Show ball after line transition finishes (~350ms)
-      removeTimer = setTimeout(() => {
-        setShot((prev) => (prev ? { ...prev, showBall: true } : null));
-      }, 350);
-
-      // Auto clear after 5 seconds
+      // Auto clear after 6 seconds
       removeTimer = setTimeout(() => {
         setShot(null);
-        setFieldName('');
-      }, 10000);
+      }, 9000);
     };
 
     ground.addEventListener('pointerdown', handlePointerDown);
@@ -62,7 +54,6 @@ export default function CricketWagonWheel() {
     };
   }, []);
 
-  // Professional Field Zones calculation
   const getFieldName = (x, y) => {
     const dx = x - CENTER_X;
     const dy = y - CENTER_Y;
@@ -84,7 +75,7 @@ export default function CricketWagonWheel() {
     if (angle >= 35 && angle < 60) return prefix + 'MID ON';
     if (angle >= 60 && angle < 120) return prefix + 'STRAIGHT';
     if (angle >= 120 && angle < 145) return prefix + 'LONG ON';
-    if (angle >= 145 && angle < 165) return prefix + 'MID ON';
+    if (angle >= 145 && angle < 165) return prefix + 'MID OFF';
     if (angle >= 165 && angle < 195) return prefix + 'COVER';
     if (angle >= 195 && angle < 220) return prefix + 'POINT';
     if (angle >= 220 && angle < 245) return prefix + 'GULLY';
@@ -95,7 +86,7 @@ export default function CricketWagonWheel() {
 
   return (
     <div className="flex items-center justify-center h-[600px] bg-[#1b1b1b] overflow-hidden font-sans select-none">
-      <div className="w-[850px] flex items-center justify-center">
+      <div className="w-[850px] flex items-center justify-center relative">
         
         {/* Ground Wrapper */}
         <div
@@ -130,43 +121,72 @@ export default function CricketWagonWheel() {
             </div>
           </div>
 
-          {/* Dynamic Shot Layer */}
+          {/* Dynamic Animations using Framer Motion */}
           <div className="absolute inset-0 z-[100] pointer-events-none">
-            {shot && (
-              <>
-                {/* Shot Line */}
-                <div
-                  className="absolute h-[8px] bg-white rounded-[20px] shadow-[0_0_8px_rgba(255,255,255,0.6)] z-[101] transition-all duration-300 linear"
-                  style={{
-                    left: `${START_X}px`,
-                    top: `${START_Y}px`,
-                    width: `${shot.distance}px`,
-                    transformOrigin: 'left center',
-                    transform: `rotate(${shot.angle}deg)`,
-                  }}
-                />
-
-                {/* Ball */}
-                {shot.showBall && (
-                  <div
-                    className="absolute w-[22px] h-[22px] rounded-full -translate-x-1/2 -translate-y-1/2 border-[2px] border-white shadow-[0_0_10px_rgba(0,0,0,0.3)] z-[102]"
+            <AnimatePresence>
+              {shot && (
+                <>
+                  {/* Broadcaster Shot Line - Changed to RED */}
+                  <motion.div
+                    key={`line-${shot.id}`}
+                    className="absolute h-[14px] rounded-full z-[101]"
                     style={{
-                      left: `${shot.endX}px`,
-                      top: `${shot.endY}px`,
-                      background: 'linear-gradient(90deg, transparent 46%, white 46%, white 54%, transparent 54%), radial-gradient(circle at 35% 35%, #ff9090, #d00000)',
+                      left: START_X,
+                      top: START_Y,
+                      transformOrigin: '0% 50%',
+                      backgroundColor: '#ff0000',
+                      boxShadow: '0 0 12px #ff0000, 0 0 6px #fff',
                     }}
+                    initial={{ width: 0, rotate: shot.angle }}
+                    animate={{ width: shot.distance, rotate: shot.angle }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.6, ease: 'easeOut' }}
                   />
-                )}
-              </>
+
+                  {/* 3D Ball Arc Animation */}
+                  <motion.div
+                    key={`ball-${shot.id}`}
+                    className="absolute w-[20px] h-[20px] rounded-full z-[102] border-[2px] border-white"
+                    style={{
+                      marginLeft: '-10px',
+                      marginTop: '-10px',
+                      background: 'radial-gradient(circle at 35% 35%, #ff9090, #d00000)',
+                      boxShadow: '0 5px 15px rgba(0,0,0,0.6)',
+                    }}
+                    initial={{ x: START_X, y: START_Y, scale: 0.5, opacity: 0 }}
+                    animate={{
+                      x: shot.endX,
+                      y: shot.endY,
+                      scale: [0.5, 2.5, 1], // Simulates throwing arc
+                      opacity: 1,
+                    }}
+                    exit={{ opacity: 0, scale: 0.5 }}
+                    transition={{ duration: 0.6, ease: 'easeInOut' }}
+                  />
+                </>
+              )}
+            </AnimatePresence>
+          </div>
+          
+          {/* Large Unboxed Field Name Display */}
+          <AnimatePresence>
+            {shot && (
+              <motion.div
+                key="text-plate"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.3 }}
+                className="absolute bottom-[55px] left-1/2 -translate-x-1/2 w-[90%] text-center z-[200] pointer-events-none"
+              >
+                <div className="text-white text-[48px] font-black uppercase tracking-[3px] leading-[50px] [text-shadow:_0_4px_8px_rgba(0,0,0,0.8),_0_0_20px_rgba(0,0,0,0.5)]">
+                  {shot.name}
+                </div>
+              </motion.div>
             )}
-          </div>
+          </AnimatePresence>
 
-          {/* Field Name Display */}
-          <div className="absolute bottom-[55px] left-1/2 -translate-x-1/2 w-[90%] text-center text-white text-[38px] font-black uppercase tracking-[2px] leading-[42px] [text-shadow:_0_3px_6px_rgba(0,0,0,0.7)] z-[200] pointer-events-none">
-            {fieldName}
-          </div>
         </div>
-
       </div>
     </div>
   );

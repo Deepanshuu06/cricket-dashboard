@@ -7,6 +7,7 @@ import UmpireSix from './UmpireSix';
 import UmpireFour from './UmpireFour';
 import UmpireNoBall from './UmpireNoBall';
 import UmpireWicket from './UmpireWicket';
+import PitchBallTracking from './PitchBallTracking';
 
 const LiveGraphicArea = () => {
   const data = useScoreStore((state) => state.liveData);

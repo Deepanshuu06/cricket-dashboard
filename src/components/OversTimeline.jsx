@@ -152,7 +152,7 @@ const OversTimeline = () => {
             <div className="shine-layer" />
             
             <span className="relative z-10 text-white font-condensed font-bold text-[36px] tracking-widest text-shadow-outline whitespace-nowrap uppercase">
-              {`CRR: ${data?.crr || 0} | RRR: ${data?.rrr || 0} `} 
+              {`CRR: ${data?.crr || 0} | RRR: ${data?.rrr || 0} | Match Stage : ${data?.match_stage || 'N/A'}`}  
             </span>
           </div>
         </div>

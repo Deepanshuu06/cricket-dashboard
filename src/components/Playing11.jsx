@@ -71,6 +71,7 @@ const Playing11 = ({ initialTeamIndex = 0, onClose }) => {
         if (response.data && response.data.success) {
           cachedPlaying11 = response.data;
           setTeamData(response.data);
+          console.log("Fetched Playing XI Data:", response.data);
         }
       } catch (error) {
         console.error("Failed to fetch playing XI:", error);
@@ -130,7 +131,7 @@ const Playing11 = ({ initialTeamIndex = 0, onClose }) => {
 
         <div className="flex items-center gap-6 relative z-10">
           <span className="text-white font-black text-[55px] uppercase tracking-wider" style={{ fontFamily: 'Oswald, sans-serif' }}>
-            {activeTeamName} PROBABLE 11
+            {activeTeamName} PLAYING 11
           </span>
         </div>
         <div className="flex gap-4 items-center relative z-10">

@@ -3,64 +3,39 @@ import { motion } from "framer-motion";
 import { GiCricketBat } from "react-icons/gi";
 import { MdSportsCricket } from "react-icons/md";
 import "../styles/scoreBanner.css";
-// Import the CSS module for custom styles
 import useScoreStore from "../hooks/useScoreStore";
 
-// Accept the onTeamClick prop from App.jsx
-const ScoreBanner = ({ onTeamClick , onScoreClick  }) => {
+// Accept the new themeColors object
+const ScoreBanner = ({ onTeamClick, onScoreClick, team1Logo, team2Logo, themeColors, onFlagClick }) => {
 
-  // GRAB the data directly from Zustand
   const data = useScoreStore((state) => state.liveData);
-
-  const team1Logo = "https://upload.wikimedia.org/wikipedia/commons/6/6a/Flag_of_Zimbabwe.svg"
-  const team2Logo = "https://upload.wikimedia.org/wikipedia/en/thumb/4/41/Flag_of_India.svg/330px-Flag_of_India.svg.png"; // England
-
-
-  // Return early if no data is provided to prevent crashes
   if (!data) return null;
 
-  // Define team gradient colors
-  const team1 = {
-    color: "from-[#3b5bdb] to-[#1d3557]",
-  };
-  const team2 = {
-    color: "from-[#e63946] to-[#780000]",
-  };
-
-  // Determine if the match is in the second innings
   const isSecondInnings =
     (data.second_innings_header?.score ?? "") !== "" ||
     data.second_innings_header?.active === true;
 
-  // Extract batting team details
   const batting = {
     name: data.batting_team,
-    score: isSecondInnings
-      ? data.second_innings_header?.score
-      : data.first_innings?.score,
-    overs: isSecondInnings
-      ? data.second_innings_header?.overs
-      : data.first_innings?.overs,
+    score: isSecondInnings ? data.second_innings_header?.score : data.first_innings?.score,
+    overs: isSecondInnings ? data.second_innings_header?.overs : data.first_innings?.overs,
   };
 
-  // Extract bowling team details
   const bowling = {
     name: data.bowling_team,
     score: data.first_innings?.score,
     overs: data.first_innings?.overs,
   };
 
-  // Extract and evaluate the match result or status text
   const resultText = data?.result_number;
   const isLongText = resultText?.length > 3;
 
   return (
-    <div className="relative w-[1920px] h-[250px] bg-transparent font-sans overflow-hidden ">
-      {/* --- Main Scoreboard Layout --- */}
+    <div className="relative w-[1920px] h-[250px] bg-transparent font-sans overflow-hidden">
       <div className="absolute top-[20px] left-0 w-full flex h-[230px] shadow-[0_20px_50px_rgba(0,0,0,0.9)] z-30 border-b-[6px] border-gray-400 bg-gray-900">
         
-        {/* Leftmost Vertical 'SCORE' Tab */}
-        <div onClick={onScoreClick} className=" cursor-pointer w-[70px] bg-gradient-to-b from-orange-500 to-orange-800 flex items-center justify-center border-r-[4px] border-gray-300 z-40 shadow-[4px_0_15px_rgba(0,0,0,0.5)] relative">
+        {/* SCORE Tab */}
+        <div onClick={onScoreClick} className="cursor-pointer w-[70px] bg-gradient-to-b from-orange-500 to-orange-800 flex items-center justify-center border-r-[4px] border-gray-300 z-40 shadow-[4px_0_15px_rgba(0,0,0,0.5)] relative">
           <span className="transform -rotate-90 text-white font-black tracking-widest text-4xl whitespace-nowrap text-shadow-heavy">
             SCORE
           </span>
@@ -69,10 +44,11 @@ const ScoreBanner = ({ onTeamClick , onScoreClick  }) => {
 
         {/* --- Batting Team Section (Left) --- */}
         <div className="relative flex-1 flex flex-col">
-          {/* Batting Team Header (CLICKABLE) */}
+          {/* Header using custom color */}
           <div 
             onClick={() => onTeamClick && onTeamClick(0)}
-            className="h-[55px] bg-gradient-to-r from-orange-600 to-orange-500 border-b-[4px] border-gray-300 flex items-center justify-between px-8 z-20 cursor-pointer hover:bg-orange-400 transition-colors"
+            style={{ backgroundColor: themeColors.t1Header }}
+            className="h-[55px] border-b-[4px] border-gray-300 flex items-center justify-between px-8 z-20 cursor-pointer hover:brightness-110 transition-all"
           >
             <span className="text-white font-black text-3xl tracking-widest uppercase text-shadow-heavy whitespace-nowrap pointer-events-none">
               {batting.name}
@@ -80,10 +56,12 @@ const ScoreBanner = ({ onTeamClick , onScoreClick  }) => {
             <GiCricketBat className="text-yellow-300 text-4xl drop-shadow-md origin-bottom-right -rotate-12 pointer-events-none" />
           </div>
 
-          {/* Batting Team Score & Overs */}
-          <div className={`relative flex-1 bg-gradient-to-b ${team1.color} flex items-center justify-start pl-8 pr-[160px] overflow-hidden`}>
+          {/* Main Body using custom color fading to black */}
+          <div 
+            style={{ background: `linear-gradient(to bottom, ${themeColors.t1Bg}, #000000)` }}
+            className="relative flex-1 flex items-center justify-start pl-8 pr-[160px] overflow-hidden"
+          >
             <div className="animate-shine" />
-
             <div className="flex items-baseline gap-4 z-20">
               <span className="text-white font-black text-[115px] leading-none text-shadow-outline tracking-tighter whitespace-nowrap">
                 {batting.score}
@@ -94,26 +72,25 @@ const ScoreBanner = ({ onTeamClick , onScoreClick  }) => {
             </div>
           </div>
 
-          {/* Left Team Flag Indicator */}
-          <div className="absolute right-[-125px] top-1/2 -translate-y-1/2 z-50 pointer-events-none">
-            <div className="relative flex items-center justify-center w-[250px] h-[250px] rounded-full shadow-[0_15px_35px_rgba(0,0,0,0.8)] bg-white overflow-hidden">
+          {/* Left Flag */}
+          <div 
+            onClick={onFlagClick}
+            className="absolute right-[-125px] top-1/2 -translate-y-1/2 z-50 pointer-events-auto cursor-pointer group"
+          >
+            <div className="relative flex items-center justify-center w-[250px] h-[250px] rounded-full shadow-[0_15px_35px_rgba(0,0,0,0.8)] bg-white overflow-hidden group-hover:scale-105 transition-transform duration-300">
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
-                className="absolute w-[150%] h-[150%] bg-[conic-gradient(from_0deg,#fff_0deg,#3b82f6_90deg,#fff_180deg,#f97316_270deg,#fff_360deg)]"
+                className="absolute w-[150%] h-[150%] bg-[conic-gradient(from_0deg,#fff_0deg,#3b82f6_90deg,#fff_180deg,#f97316_270deg,#fff_360deg)] pointer-events-none"
               />
-              <div className="absolute inset-[10px] bg-white rounded-full overflow-hidden flex items-center justify-center z-10 border-[4px] border-gray-200">
-                <img
-                  src={team1Logo}
-                  alt="India"
-                  className="w-full h-full object-cover"
-                />
+              <div className="absolute inset-[10px] bg-white rounded-full overflow-hidden flex items-center justify-center z-10 border-[4px] border-gray-200 pointer-events-none">
+                <img src={team1Logo} alt="Team 1 Flag" className="w-full h-full object-cover" />
               </div>
             </div>
           </div>
         </div>
 
-        {/* --- Center Section (Match Status / Waveform) --- */}
+        {/* --- Center Section --- */}
         <div className="relative w-[1100px] bg-[#0a0f1c] flex flex-col justify-center items-center border-x-[4px] border-gray-800 overflow-hidden z-10 px-[130px]">
           <div className="absolute inset-0 flex items-center justify-center gap-[6px] opacity-40 z-0">
             {[...Array(24)].map((_, i) => (
@@ -141,10 +118,11 @@ const ScoreBanner = ({ onTeamClick , onScoreClick  }) => {
 
         {/* --- Bowling Team Section (Right) --- */}
         <div className="relative flex-1 flex flex-col">
-          {/* Bowling Team Header (CLICKABLE) */}
+          {/* Header using custom color */}
           <div 
             onClick={() => onTeamClick && onTeamClick(1)}
-            className="h-[55px] bg-gradient-to-l from-blue-800 to-blue-600 border-b-[4px] border-gray-300 flex items-center justify-between px-8 z-20 flex-row-reverse cursor-pointer hover:bg-blue-500 transition-colors"
+            style={{ backgroundColor: themeColors.t2Header }}
+            className="h-[55px] border-b-[4px] border-gray-300 flex items-center justify-between px-8 z-20 flex-row-reverse cursor-pointer hover:brightness-110 transition-all"
           >
             <span className="text-white font-black text-3xl tracking-widest uppercase text-shadow-heavy whitespace-nowrap pointer-events-none">
               {bowling.name}
@@ -152,8 +130,11 @@ const ScoreBanner = ({ onTeamClick , onScoreClick  }) => {
             <MdSportsCricket className="text-red-500 bg-white rounded-full text-4xl shadow-[0_0_10px_rgba(255,255,255,0.5)] pointer-events-none" />
           </div>
 
-          {/* Bowling Team Score & Overs */}
-          <div className={`relative flex-1 bg-gradient-to-b ${team2.color} flex items-center justify-end pr-8 pl-[160px] overflow-hidden`}>
+          {/* Main Body using custom color fading to black */}
+          <div 
+            style={{ background: `linear-gradient(to bottom, ${themeColors.t2Bg}, #000000)` }}
+            className="relative flex-1 flex items-center justify-end pr-8 pl-[160px] overflow-hidden"
+          >
             <div className="animate-shine" style={{ animationDelay: "1.5s" }} />
 
             {isSecondInnings ? (
@@ -174,21 +155,19 @@ const ScoreBanner = ({ onTeamClick , onScoreClick  }) => {
             )}
           </div>
 
-          {/* Right Team Flag Indicator */}
-          <div className="absolute left-[-125px] top-1/2 -translate-y-1/2 z-50 pointer-events-none ">
-            <div className="relative flex items-center justify-center w-[250px] h-[250px] rounded-full shadow-[0_15px_35px_rgba(0,0,0,0.8)] bg-white overflow-hidden">
+          {/* Right Flag */}
+          <div 
+            onClick={onFlagClick}
+            className="absolute left-[-125px] top-1/2 -translate-y-1/2 z-50 pointer-events-auto cursor-pointer group"
+          >
+            <div className="relative flex items-center justify-center w-[250px] h-[250px] rounded-full shadow-[0_15px_35px_rgba(0,0,0,0.8)] bg-white overflow-hidden group-hover:scale-105 transition-transform duration-300">
               <motion.div
                 animate={{ rotate: -360 }}
                 transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
-                className="absolute w-[150%] h-[150%] bg-[conic-gradient(from_0deg,#fff_0deg,#dc2626_90deg,#fff_180deg,#1e3a8a_270deg,#fff_360deg)]"
+                className="absolute w-[150%] h-[150%] bg-[conic-gradient(from_0deg,#fff_0deg,#dc2626_90deg,#fff_180deg,#1e3a8a_270deg,#fff_360deg)] pointer-events-none"
               />
-              <div className="absolute inset-[10px] bg-white rounded-full overflow-hidden flex items-center justify-center z-10 border-[4px] border-gray-200">
-                <img
-                      src={team2Logo}
-                      alt="team2"
-                      className="w-full h-full object-cover"
-                      
-                    />
+              <div className="absolute inset-[10px] bg-white rounded-full overflow-hidden flex items-center justify-center z-10 border-[4px] border-gray-200 pointer-events-none">
+                <img src={team2Logo} alt="Team 2 Flag" className="w-full h-full object-cover" />
               </div>
             </div>
           </div>
