@@ -1,11 +1,11 @@
 import React from 'react'
 
-const UmpireNoBall = () => {
+const UmpireWicket = () => {
   return (
-      <div className="flex relative items-center justify-center h-[600px] w-full bg-[#1b1b1b] overflow-hidden">
+   <div className="flex relative items-center justify-center h-[600px] w-full bg-[#1b1b1b] overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-full z-20 pointer-events-none">
         <video
-          src="noBall.mp4"
+          src="out.mp4"
           autoPlay
 
           muted
@@ -18,4 +18,4 @@ const UmpireNoBall = () => {
   )
 }
 
-export default UmpireNoBall
+export default UmpireWicket

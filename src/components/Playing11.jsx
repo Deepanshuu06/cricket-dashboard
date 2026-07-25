@@ -180,8 +180,8 @@ const Playing11 = ({ initialTeamIndex = 0, onClose }) => {
               onClick={() => setSelectedStatPlayer(captain)}
               className="w-[450px] h-full flex flex-col border-[4px] border-[#0a192f] cursor-pointer shadow-2xl bg-gradient-to-b from-gray-200 to-gray-400 relative"
             >
-              <div className="h-[40px] bg-[#d4af37] flex items-center justify-center border-b-[3px] border-black shadow-md z-10">
-                <span className="font-black text-black text-[28px] tracking-widest uppercase" style={{ fontFamily: 'Oswald, sans-serif' }}>
+              <div className="h-[40px] bg-red-600 flex items-center justify-center border-b-[3px] border-black shadow-md z-10">
+                <span className="font-black text-white text-[35px] tracking-widest uppercase" style={{ fontFamily: 'Oswald, sans-serif' }}>
                   CAPTAIN
                 </span>
               </div>
@@ -258,10 +258,10 @@ const Playing11 = ({ initialTeamIndex = 0, onClose }) => {
 
                 <div className="flex flex-col border-t-[3px] border-black h-[75px] z-10">
                   <div className="bg-[#1a2b50] flex-1 flex items-center justify-center px-1">
-                    <span className="text-white font-bold text-[18px] leading-[1.1] uppercase text-center" style={{ fontFamily: 'Oswald, sans-serif' }}>{player.name}</span>
+                    <span className="text-white font-bold text-[24px] leading-[1.1] uppercase text-center" style={{ fontFamily: 'Oswald, sans-serif' }}>{player.name}</span>
                   </div>
                   <div className="bg-white h-[28px] flex items-center justify-center border-t-[2px] border-gray-400">
-                    <span className="text-black font-black text-[16px] uppercase" style={{ fontFamily: 'Oswald, sans-serif' }}>{player.role || "PLAYER"}</span>
+                    <span className="text-black font-black text-[22px] uppercase" style={{ fontFamily: 'Oswald, sans-serif' }}>{player.role || "PLAYER"}</span>
                   </div>
                 </div>
               </motion.div>

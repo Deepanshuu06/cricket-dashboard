@@ -93,33 +93,8 @@ const WinPrediction = ({ winPredictionData, onClose }) => {
             Probability & Projections
           </h2>
 
-          {/* Toggle Switch */}
-          <div className="flex bg-[#112240] p-1.5 rounded-xl border border-gray-600 relative">
-            <button
-              onClick={() => setViewMode('percent')}
-              className={`relative px-5 py-2 font-black text-lg uppercase rounded-lg transition-colors cursor-pointer ${
-                viewMode === 'percent' ? 'text-black' : 'text-white hover:text-gray-300'
-              }`}
-              style={{ fontFamily: 'Oswald, sans-serif' }}
-            >
-              {viewMode === 'percent' && (
-                <motion.div layoutId="activeToggleBG" className="absolute inset-0 bg-[#d4af37] rounded-lg shadow-lg" style={{ zIndex: -1 }} />
-              )}
-              % View
-            </button>
-            <button
-              onClick={() => setViewMode('number')}
-              className={`relative px-5 py-2 font-black text-lg uppercase rounded-lg transition-colors cursor-pointer ${
-                viewMode === 'number' ? 'text-black' : 'text-white hover:text-gray-300'
-              }`}
-              style={{ fontFamily: 'Oswald, sans-serif' }}
-            >
-              {viewMode === 'number' && (
-                <motion.div layoutId="activeToggleBG" className="absolute inset-0 bg-[#d4af37] rounded-lg shadow-lg" style={{ zIndex: -1 }} />
-              )}
-              Number View
-            </button>
-          </div>
+
+       
         </div>
 
         <motion.div
@@ -129,11 +104,11 @@ const WinPrediction = ({ winPredictionData, onClose }) => {
           className="relative z-10 flex flex-col w-full"
         >
           {/* --- WIN PROBABILITY SECTION --- */}
-          <motion.div variants={itemVariant} className="bg-[#112240] border-[2px] border-gray-700 p-6 rounded-2xl shadow-xl mb-8">
+          {/* <motion.div variants={itemVariant} className="bg-[#112240] border-[2px] border-gray-700 p-6 rounded-2xl shadow-xl mb-8">
             <div className="flex justify-between items-center mb-4">
               
             </div>
-          </motion.div>
+          </motion.div> */}
 
           {/* --- PROJECTED SCORE SECTION --- */}
           <motion.div variants={itemVariant} className="bg-[#112240] border-[2px] border-gray-700 p-6 rounded-2xl shadow-xl">

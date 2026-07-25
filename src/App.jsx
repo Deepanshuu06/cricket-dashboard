@@ -9,6 +9,7 @@ import Playing11 from "./components/Playing11"; // Make sure this is created and
 import MatchSummary from "./components/MatchSummary";
 import VenueInfoMatchDetails from "./components/VenueInfoMatchDetails";
 import WinPrediction from "./components/WinPrediction";
+import PartnershipOverlay from "./components/PartnershipOverlay";
 
 const App = () => {
   // State to manage the Playing 11 modal
@@ -106,6 +107,8 @@ const sampleWinPrediction = {
           />
         )}
       </AnimatePresence>
+
+
       
     </div>
   );

@@ -6,15 +6,21 @@ import UmpireWide from './UmpireWide';
 import UmpireSix from './UmpireSix';
 import UmpireFour from './UmpireFour';
 import UmpireNoBall from './UmpireNoBall';
+import UmpireWicket from './UmpireWicket';
 
 const LiveGraphicArea = () => {
   const data = useScoreStore((state) => state.liveData);
-  const [overlay, setOverlay] = useState(null); // 'wide' | 'six' | null
+  const [overlay, setOverlay] = useState(null); // 'wide' | 'six' | 'four' | 'no-ball' | 'wicket' | null
 
   // Safely convert both values to lower-case strings to check for text matches
   const resultText = data?.result_text?.toString().toLowerCase() || '';
+  
+  // Note: Make sure to use your real data here instead of the hardcoded testing value in production
   const rawResultNumber = data?.result_number?.toString().toLowerCase() || '';
-  const numericResult = Number(data?.result_number);
+  
+  // FIX 1: Safely parse numbers. Prevent '' or null from evaluating to 0
+  const isValidNumber = data?.result_number !== null && data?.result_number !== undefined && data?.result_number !== '';
+  const numericResult = isValidNumber ? Number(data?.result_number) : NaN;
 
   // Check if wide or six is present in either result_text or result_number
   const isWide = resultText.includes('wide') || rawResultNumber.includes('wide');
@@ -30,56 +36,47 @@ const LiveGraphicArea = () => {
     resultText === '4' || 
     rawResultNumber.includes('four') || 
     rawResultNumber === '4';
-    const isNoBall = resultText.includes('no ball') || rawResultNumber.includes('no ball');
-
+  const isNoBall = resultText.includes('no ball') || rawResultNumber.includes('no ball');
+  const isWicket = resultText.includes('wicket') || rawResultNumber.includes('wicket');
+  const isRunOutCheck = resultText.includes('run out check') || rawResultNumber.includes('run out check');
   useEffect(() => {
     let timer;
 
     if (isWide) {
       setOverlay('wide');
-      timer = setTimeout(() => {
-        setOverlay(null); // Switches to WagonWheel after 2 seconds
-      }, 2000);
+      timer = setTimeout(() => setOverlay(null), 3000);
     } else if (isSix) {
       setOverlay('six');
-      timer = setTimeout(() => {
-        setOverlay(null); // Switches to WagonWheel after 2 seconds
-      }, 2000);
+      timer = setTimeout(() => setOverlay(null), 3000);
     } else if (isFour) {
       setOverlay('four');
-      timer = setTimeout(() => {
-        setOverlay(null); // Switches to WagonWheel after 2 seconds
-      }, 2000);
+      timer = setTimeout(() => setOverlay(null), 3000);
     } else if (isNoBall) {
       setOverlay('no-ball');
-      timer = setTimeout(() => {
-        setOverlay(null); // Switches to WagonWheel after 4 seconds
-      }, 4000);
+      // Switches back to main display after 4 seconds
+      timer = setTimeout(() => setOverlay(null), 4000); 
+    } else if (isWicket) {
+      setOverlay('wicket');
+      timer = setTimeout(() => setOverlay(null), 3000);
     } else {
       setOverlay(null);
     }
 
     return () => clearTimeout(timer);
-  }, [data?.result_text, data?.result_number, isWide, isSix, isFour]);
+  // FIX 2: Added missing dependencies so the timer reacts correctly to all score changes
+  }, [data?.result_text, data?.result_number, isWide, isSix, isFour, isNoBall, isWicket]);
 
-  // 1. Show temporary umpire animation for 2 seconds
-  if (overlay === 'wide') {
-    return <UmpireWide />;
-  }
+  // 1. Show temporary umpire animation
+  if (overlay === 'wide') return <UmpireWide />;
+  if (overlay === 'six') return <UmpireSix />;
+  if (overlay === 'four') return <UmpireFour />;
+  if (overlay === 'no-ball') return <UmpireNoBall />;
+  if (overlay === 'wicket') return <UmpireWicket />;
 
-  if (overlay === 'six') {
-    return <UmpireSix />;
-  }
-
-  if (overlay === 'four') {
-    return <UmpireFour />;
-  }
-  if (overlay === 'no-ball') {
-    return <UmpireNoBall />;
-  }
-
-  // 2. Main display: Show WagonWheel if it's a number (0-6) or a Wide delivery, otherwise BatsmanVideo
-  const isWagonWheel = [0, 1, 2, 3, 4, 5, 6].includes(numericResult) || isWide;
+  // 2. Main display logic
+  // FIX 3: Ensure that if it is a No Ball or Wicket, it ALWAYS fails this check 
+  // so that it safely falls back to rendering the BatsmanVideo.
+  const isWagonWheel = (!isNoBall && !isWicket) && ([0, 1, 2, 3, 4, 5, 6].includes(numericResult) || isWide);
 
   return isWagonWheel ? <CricketWagonWheel /> : <BatsmanVideo />;
 };

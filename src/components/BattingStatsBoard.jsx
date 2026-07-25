@@ -10,18 +10,22 @@ const BattingStatsBoard = ({ onBatsmanClick, onRunClick }) => {
 
   const [overlay, setOverlay] = useState(null);
   const [strikeChangeOverlay, setStrikeChangeOverlay] = useState(false);
+  const [bowlerChangeOverlay, setBowlerChangeOverlay] = useState(false); // NEW STATE
   const [showLastWicket, setShowLastWicket] = useState(false);
 
   const resultNumber = data?.result_number;
   const batsman1 = data?.players?.batsman1;
   const batsman2 = data?.players?.batsman2;
+  const bowler = data?.players?.bowler; // Moved up to use in useEffect
   const yet_to_bat = data?.yet_to_bat;
   const lastWicket = data?.last_wicket;
-  
-  const hasLastWicket = !!lastWicket; 
+
+  const hasLastWicket = !!lastWicket;
 
   const prevStrikerRef = useRef(null);
+  const prevBowlerRef = useRef(null); // NEW REF
 
+  // 1. Result Number Overlay Effect
   useEffect(() => {
     if (!resultNumber) return;
 
@@ -54,12 +58,13 @@ const BattingStatsBoard = ({ onBatsmanClick, onRunClick }) => {
     }
   }, [resultNumber]);
 
+  // 2. Strike Change Overlay Effect
   useEffect(() => {
     const currentStriker = batsman1?.onStrike
       ? batsman1?.name
       : batsman2?.onStrike
-        ? batsman2?.name
-        : null;
+      ? batsman2?.name
+      : null;
 
     if (
       prevStrikerRef.current !== null &&
@@ -74,6 +79,25 @@ const BattingStatsBoard = ({ onBatsmanClick, onRunClick }) => {
     prevStrikerRef.current = currentStriker;
   }, [batsman1?.onStrike, batsman2?.onStrike, batsman1?.name, batsman2?.name]);
 
+  // 3. Bowler Change Overlay Effect (NEW)
+  useEffect(() => {
+    const currentBowler = bowler?.name;
+
+    if (
+      prevBowlerRef.current !== null &&
+      prevBowlerRef.current !== currentBowler &&
+      currentBowler !== undefined
+    ) {
+      setBowlerChangeOverlay(true);
+      // Display overlay for 1.5 seconds
+      const timer = setTimeout(() => setBowlerChangeOverlay(false), 1500);
+      return () => clearTimeout(timer);
+    }
+
+    prevBowlerRef.current = currentBowler;
+  }, [bowler?.name]);
+
+  // 4. Last Wicket Toggle Effect
   useEffect(() => {
     if (!hasLastWicket) {
       setShowLastWicket(false);
@@ -96,7 +120,6 @@ const BattingStatsBoard = ({ onBatsmanClick, onRunClick }) => {
   }
 
   const batters = [batsman1, batsman2].filter(Boolean);
-  const bowler = data.players?.bowler;
 
   const displayPartnership =
     typeof data.partnership === "object"
@@ -170,11 +193,14 @@ const BattingStatsBoard = ({ onBatsmanClick, onRunClick }) => {
       {/* --- BATTING SECTION (Wrapped in Running Border) --- */}
       <div className="running-border-container shadow-[0_4px_15px_rgba(0,0,0,0.5)]">
         <div className="running-border-inner">
-          
           <div className="h-[70px] flex items-center bg-gradient-to-b from-orange-500 to-orange-700 text-white font-black px-6 text-[45px] tracking-wider uppercase border-b-[4px] border-black shadow-[inset_0_4px_8px_rgba(255,255,255,0.3)] relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shine_3s_infinite]" />
-            <div onClick={onBatsmanClick} className="w-[42%] cursor-pointer z-10">Batsman</div>
-            <div onClick={onRunClick} className="w-[10%] text-center cursor-pointer z-10">R</div>
+            <div onClick={onBatsmanClick} className="w-[42%] cursor-pointer z-10">
+              Batsman
+            </div>
+            <div onClick={onRunClick} className="w-[10%] text-center cursor-pointer z-10">
+              R
+            </div>
             <div className="w-[10%] text-center z-10">B</div>
             <div className="w-[10%] text-center z-10">4s</div>
             <div className="w-[10%] text-center z-10">6s</div>
@@ -276,7 +302,7 @@ const BattingStatsBoard = ({ onBatsmanClick, onRunClick }) => {
         </motion.span>
       </div>
 
-      {/* --- BOWLER & PARTNERSHIP/LAST WICKET SECTION --- */}
+      {/* --- BOWLER HEADER SECTION --- */}
       <div className="h-[60px] flex items-center bg-gradient-to-b from-orange-500 to-orange-700 text-white font-black px-4 text-[35px] tracking-wider uppercase border-b-[4px] border-black">
         <div className="w-[70%] flex items-center">
           <div className="w-[35%] flex items-center gap-3">
@@ -290,9 +316,9 @@ const BattingStatsBoard = ({ onBatsmanClick, onRunClick }) => {
           <div className="w-[15%] text-center">W</div>
           <div className="w-[20%] text-center">ECO</div>
         </div>
-        
+
         <div className="w-[4px] h-[40px] bg-black/50 rounded mx-2 shadow-inner" />
-        
+
         <div className="w-[30%] flex items-center justify-center gap-3 relative overflow-hidden h-[60px]">
           <AnimatePresence mode="wait">
             <motion.div
@@ -312,8 +338,27 @@ const BattingStatsBoard = ({ onBatsmanClick, onRunClick }) => {
         </div>
       </div>
 
-      <div className="h-[95px] flex items-center bg-gradient-to-b from-blue-700 to-blue-900 text-white font-bold px-4">
-        <div className="w-[70%] flex items-center">
+      {/* --- BOWLER STATS SECTION (Now Relative for Overlay) --- */}
+      <div className="relative h-[95px] flex items-center bg-gradient-to-b from-blue-700 to-blue-900 text-white font-bold px-4 overflow-hidden">
+        
+        {/* NEW BOWLER CHANGE OVERLAY */}
+        <AnimatePresence>
+          {bowlerChangeOverlay && (
+            <motion.div
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "tween", duration: 0.4 }}
+              className="absolute inset-0 z-20 flex items-center justify-center bg-gradient-to-r from-purple-700 to-purple-500 text-white"
+            >
+              <span className="text-[55px] font-black tracking-widest uppercase drop-shadow-lg">
+                BOWLER CHANGE
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="w-[70%] flex items-center z-10">
           <div className="w-[35%] text-[45px] leading-none tracking-tight whitespace-nowrap">
             {String(bowler?.name || "")}
           </div>
@@ -331,9 +376,9 @@ const BattingStatsBoard = ({ onBatsmanClick, onRunClick }) => {
           </div>
         </div>
 
-        <div className="w-[4px] h-[70px] bg-blue-950 rounded mx-2 shadow-inner" />
+        <div className="w-[4px] h-[70px] bg-blue-950 rounded mx-2 shadow-inner z-10" />
 
-        <div className="w-[30%] flex items-center justify-center relative h-[95px] overflow-hidden px-2">
+        <div className="w-[30%] flex items-center justify-center relative h-[95px] overflow-hidden px-2 z-10">
           <AnimatePresence mode="wait">
             <motion.div
               key={showLastWicket ? "last-wicket-value" : "partnership-value"}
@@ -348,10 +393,14 @@ const BattingStatsBoard = ({ onBatsmanClick, onRunClick }) => {
               {showLastWicket ? (
                 <>
                   <div className="truncate w-full text-center text-yellow-300 ">
-                    {typeof lastWicket === "object" ? lastWicket.name || "" : lastWicket || ""}
+                    {typeof lastWicket === "object"
+                      ? lastWicket.name || ""
+                      : lastWicket || ""}
                   </div>
                   <div className="text-[32px] opacity-90 mt-1 text-white">
-                    {typeof lastWicket === "object" ? `(${lastWicket.score || 0})` : ""}
+                    {typeof lastWicket === "object"
+                      ? `(${lastWicket.score || 0})`
+                      : ""}
                   </div>
                 </>
               ) : (

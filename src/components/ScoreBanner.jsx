@@ -12,8 +12,8 @@ const ScoreBanner = ({ onTeamClick , onScoreClick  }) => {
   // GRAB the data directly from Zustand
   const data = useScoreStore((state) => state.liveData);
 
-  const team1Logo = "https://img1.hscicdn.com/image/upload/f_auto/lsci/db/PICTURES/CMS/412600/412621.png"; // India
-  const team2Logo = "https://upload.wikimedia.org/wikipedia/en/thumb/d/d7/Sunrisers_Leeds_Logo.svg/1280px-Sunrisers_Leeds_Logo.svg.png"; // England
+  const team1Logo = "https://upload.wikimedia.org/wikipedia/commons/6/6a/Flag_of_Zimbabwe.svg"
+  const team2Logo = "https://upload.wikimedia.org/wikipedia/en/thumb/4/41/Flag_of_India.svg/330px-Flag_of_India.svg.png"; // England
 
 
   // Return early if no data is provided to prevent crashes
