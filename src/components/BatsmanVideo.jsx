@@ -3,7 +3,7 @@ import useScoreStore from '../hooks/useScoreStore';
 
 const BatsmanVideo = () => {
   const data = useScoreStore((state) => state.liveData);
-  console.log("Batsman Video Data:", data);
+
 
   // Check both batsmen to see who is on strike. 
   // (Checking common variations like onStrike, on_strike, or onstrike based on your API)

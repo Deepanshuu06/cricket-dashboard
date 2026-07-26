@@ -71,7 +71,7 @@ const Playing11 = ({ initialTeamIndex = 0, onClose }) => {
         if (response.data && response.data.success) {
           cachedPlaying11 = response.data;
           setTeamData(response.data);
-          console.log("Fetched Playing XI Data:", response.data);
+
         }
       } catch (error) {
         console.error("Failed to fetch playing XI:", error);

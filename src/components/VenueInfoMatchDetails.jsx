@@ -43,7 +43,7 @@ const VenueInfoMatchDetails = ({ onClose }) => {
         if (response.data) {
           cachedVenueData = response.data;
           setData(response.data);
-          console.log("Fetched venue & match details:", response.data);
+
         }
       } catch (error) {
         console.error("Error fetching venue & match details:", error);

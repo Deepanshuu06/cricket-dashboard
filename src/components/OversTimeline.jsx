@@ -4,7 +4,7 @@ import useScoreStore from '../hooks/useScoreStore';
 
 const OversTimeline = () => {
   const data = useScoreStore((state) => state.liveData);
-  console.log('result_number:', data?.result_number);
+  console.log('result_number:', data);
 
   // Process the nested timeline structure based on your JSON payload
   const processTimeline = (timeline) => {
@@ -143,7 +143,7 @@ const OversTimeline = () => {
             />
             {/* Animated Live Text */}
             <span className="text-white font-condensed font-bold text-[36px] tracking-wide animate-live-text">
-              LIVE MATCH
+              OPEN PATH
             </span>
           </div>
           

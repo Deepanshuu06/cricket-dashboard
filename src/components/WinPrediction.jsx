@@ -30,28 +30,54 @@ const popVariant = {
   }
 };
 
-const WinPrediction = ({ winPredictionData, onClose }) => {
-  const [viewMode, setViewMode] = useState('percent'); // 'percent' or 'number'
-
+const WinPrediction = ({ onClose }) => {
+  const [viewMode, setViewMode] = useState('percent'); 
   const data = useScoreStore((state) => state.liveData);
-  console.log("Win Prediction Data:", data);
 
-  // Fallback safe extraction based on your JSON structure
-  const teamLeft = winPredictionData?.team_left || { name: 'Team A', percent: 50 };
-  const teamRight = winPredictionData?.team_right || { name: 'Team B', percent: 50 };
+  // ==========================================
+  // ⚙️ MANUAL CALCULATION VARIABLES
+  // ==========================================
   
-  const rates = data?.win_prediction?.projected_score?.rates || ['9.00', '9.00', '10.00', '11.00'];
-  const scores = data?.win_prediction?.projected_score?.scores || ['180', '180', '190', '200'];
-  
-  // Extract overs from API if available (e.g., ['10', '20', '30', '40', '50'])
-  const overs = data?.win_prediction?.projected_score?.overs || [];
+  // CHANGE THIS TO 50 FOR ODI, 10 FOR T10, etc.
+  const totalOvers = 20; 
 
-  // FIX: Chunk the flat scores array into distinct rows based on the number of run rates
-  const numRates = rates.length || 4;
-  const chunkedScores = [];
-  for (let i = 0; i < scores.length; i += numRates) {
-    chunkedScores.push(scores.slice(i, i + numRates));
-  }
+  // 1. Extract Current Score & Overs from liveData safely
+  const rawScore = data?.first_innings?.score || "0-0";
+  const rawOvers = data?.first_innings?.overs || "0.0";
+  
+  const [runs, wickets] = rawScore.split('-').map(Number);
+  const [completedOvers, balls] = rawOvers.split('.').map(Number);
+  
+  // Convert overs to decimal (e.g., 16.1 overs = 16.166 overs)
+  const oversInDecimal = completedOvers + ((balls || 0) / 6);
+  const oversRemaining = Math.max(0, totalOvers - oversInDecimal);
+
+  // Extract or calculate CRR
+  const currentRR = parseFloat(data?.crr || (runs / (oversInDecimal || 1)).toFixed(2));
+
+  // 2. Calculate Manual Projected Scores
+  // Rates we want to project: CRR, 10 RPO, 12 RPO, 15 RPO
+  const manualRates = [currentRR, 10.00, 12.00, 15.00];
+  
+  const chunkedScores = [
+    manualRates.map(rate => Math.floor(runs + (oversRemaining * rate)))
+  ];
+
+  // 3. Calculate Manual Win Prediction (Algorithmic Heuristic)
+  // Assuming a par score of 165 for T20s. Adjust logic based on your match type.
+  const parScore = totalOvers === 20 ? 165 : 280; 
+  const projectedAtCRR = runs + (oversRemaining * currentRR);
+  
+  // Basic Algorithm: Start at 50%. Gain/lose 1% for every 2 runs above/below par. 
+  // Lose 3% for every wicket down.
+  let batWinProb = 50 + ((projectedAtCRR - parScore) * 0.5) - ((wickets || 0) * 3);
+  
+  // Clamp probabilities between 1% and 99%
+  batWinProb = Math.max(1, Math.min(99, Math.round(batWinProb)));
+  const bowlWinProb = 100 - batWinProb;
+
+  const battingTeam = data?.batting_team_short || "BAT";
+  const bowlingTeam = data?.bowling_team_short || "BOWL";
 
   return (
     <motion.div 
@@ -87,28 +113,51 @@ const WinPrediction = ({ winPredictionData, onClose }) => {
           <IoCloseSharp size={38} color="white" />
         </button>
 
-        {/* --- HEADER & VIEW TOGGLE --- */}
+        {/* --- HEADER --- */}
         <div className="flex items-center justify-between border-b-[3px] border-[#d4af37] pb-5 mb-8 pr-16 relative z-10">
           <h2 className="text-white font-black text-4xl uppercase tracking-wider" style={{ fontFamily: 'Oswald, sans-serif' }}>
             Probability & Projections
           </h2>
-
-
-       
         </div>
 
         <motion.div
           variants={containerVariant}
           initial="hidden"
           animate="visible"
-          className="relative z-10 flex flex-col w-full"
+          className="relative z-10 flex flex-col w-full gap-8"
         >
-          {/* --- WIN PROBABILITY SECTION --- */}
-          {/* <motion.div variants={itemVariant} className="bg-[#112240] border-[2px] border-gray-700 p-6 rounded-2xl shadow-xl mb-8">
-            <div className="flex justify-between items-center mb-4">
-              
+          {/* --- WIN PROBABILITY SECTION (Restored & Manual) --- */}
+          <motion.div variants={itemVariant} className="bg-[#112240] border-[2px] border-gray-700 p-6 rounded-2xl shadow-xl">
+             <div className="flex justify-between items-center mb-4">
+               <h3 className="text-white font-black text-2xl uppercase tracking-wider flex items-center gap-3" style={{ fontFamily: 'Oswald, sans-serif' }}>
+                <span className="w-3.5 h-3.5 bg-[#4CAF50] inline-block rounded-full shadow-[0_0_10px_#4CAF50]"></span>
+                Live Win Predictor
+              </h3>
             </div>
-          </motion.div> */}
+            
+            <div className="flex flex-col gap-2 mt-4">
+              <div className="flex justify-between text-white font-bold text-xl uppercase" style={{ fontFamily: 'Oswald, sans-serif' }}>
+                <span>{battingTeam} ({batWinProb}%)</span>
+                <span>{bowlingTeam} ({bowlWinProb}%)</span>
+              </div>
+              
+              {/* Progress Bar UI */}
+              <div className="w-full h-8 bg-gray-800 rounded-full overflow-hidden flex shadow-inner border border-gray-700">
+                <motion.div 
+                  initial={{ width: '50%' }}
+                  animate={{ width: `${batWinProb}%` }}
+                  transition={{ duration: 1.5, ease: "easeOut" }}
+                  className="h-full bg-gradient-to-r from-blue-600 to-blue-400 flex items-center justify-start px-4 text-white font-bold drop-shadow-md"
+                />
+                <motion.div 
+                  initial={{ width: '50%' }}
+                  animate={{ width: `${bowlWinProb}%` }}
+                  transition={{ duration: 1.5, ease: "easeOut" }}
+                  className="h-full bg-gradient-to-l from-red-600 to-red-400 flex items-center justify-end px-4 text-white font-bold drop-shadow-md"
+                />
+              </div>
+            </div>
+          </motion.div>
 
           {/* --- PROJECTED SCORE SECTION --- */}
           <motion.div variants={itemVariant} className="bg-[#112240] border-[2px] border-gray-700 p-6 rounded-2xl shadow-xl">
@@ -117,7 +166,7 @@ const WinPrediction = ({ winPredictionData, onClose }) => {
                 <span className="w-3.5 h-3.5 bg-[#d4af37] inline-block rounded-full shadow-[0_0_10px_#d4af37]"></span>
                 Projected Score
               </h3>
-              <span className="text-gray-400 font-bold text-sm tracking-wide">as per RR*</span>
+              <span className="text-gray-400 font-bold text-sm tracking-wide">Based on Remaining Overs ({oversRemaining.toFixed(1)})</span>
             </div>
 
             {/* Projection Table */}
@@ -128,47 +177,37 @@ const WinPrediction = ({ winPredictionData, onClose }) => {
                 <div className="p-4 text-gray-400 font-black text-base uppercase tracking-wider flex items-center">
                   Run Rate
                 </div>
-                {rates.map((rate, i) => (
+                {manualRates.map((rate, i) => (
                   <motion.div 
                     variants={popVariant} 
                     key={`rate-${i}`} 
                     className="p-4 text-center text-gray-300 font-black text-2xl" 
                     style={{ fontFamily: 'Oswald, sans-serif' }}
                   >
-                    {rate}
+                    {i === 0 ? `CRR (${rate.toFixed(2)})` : rate.toFixed(2)}
                   </motion.div>
                 ))}
               </div>
 
               {/* Data Rows */}
               <div className="flex flex-col">
-                {chunkedScores.map((rowScores, rowIndex) => {
-                  // Fallback calculation for Over labels if the API doesn't provide them.
-                  let overLabel = "20 Overs"; 
-                  if (overs && overs[rowIndex]) {
-                    overLabel = `${overs[rowIndex]} Overs`;
-                  } else if (chunkedScores.length > 1) {
-                    overLabel = `${(rowIndex + 1) * 10} Overs`;
-                  }
-
-                  return (
-                    <div key={`row-${rowIndex}`} className="grid grid-cols-5 items-center border-b border-gray-800/50 last:border-b-0 hover:bg-white/5 transition-colors">
-                      <div className="p-4 text-white font-black text-base uppercase tracking-wider">
-                        {overLabel}
-                      </div>
-                      {rowScores.map((score, i) => (
-                        <motion.div 
-                          variants={popVariant} 
-                          key={`score-${rowIndex}-${i}`} 
-                          className="p-4 text-center text-[#d4af37] font-black text-4xl drop-shadow-md" 
-                          style={{ fontFamily: 'Oswald, sans-serif' }}
-                        >
-                          {score}
-                        </motion.div>
-                      ))}
+                {chunkedScores.map((rowScores, rowIndex) => (
+                  <div key={`row-${rowIndex}`} className="grid grid-cols-5 items-center border-b border-gray-800/50 hover:bg-white/5 transition-colors">
+                    <div className="p-4 text-white font-black text-base uppercase tracking-wider">
+                      {totalOvers} Overs
                     </div>
-                  );
-                })}
+                    {rowScores.map((score, i) => (
+                      <motion.div 
+                        variants={popVariant} 
+                        key={`score-${rowIndex}-${i}`} 
+                        className="p-4 text-center text-[#d4af37] font-black text-4xl drop-shadow-md" 
+                        style={{ fontFamily: 'Oswald, sans-serif' }}
+                      >
+                        {score}
+                      </motion.div>
+                    ))}
+                  </div>
+                ))}
               </div>
             </div>
           </motion.div>

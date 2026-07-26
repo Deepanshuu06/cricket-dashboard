@@ -28,7 +28,7 @@ const popIn = {
 
 const BatsmanStatsOverlay = ({ player, onClose }) => {
 
-    console.log("BatsmanStatsOverlay Props:", { player, onClose });
+
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(false);
   const [activeFormat, setActiveFormat] = useState('ODI');
@@ -59,7 +59,7 @@ const BatsmanStatsOverlay = ({ player, onClose }) => {
         
         if (response.data && !response.data.error) {
           setStats(response.data);
-          console.log("Fetched Player Stats:", response.data);
+
           if (response.data.batting && response.data.batting.length > 0) {
             const formats = response.data.batting.map(b => b.format);
             if (!formats.includes('ODI') && formats.length > 0) {
