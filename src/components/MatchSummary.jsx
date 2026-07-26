@@ -25,6 +25,7 @@ const MatchSummary = ({ onClose }) => {
   const [loading, setLoading] = useState(!cachedMatchSummary);
   const [activeInningsIndex, setActiveInningsIndex] = useState(0);
 
+
   // 1. ESC key to close
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -45,6 +46,7 @@ const MatchSummary = ({ onClose }) => {
         if (response.data) {
           // cachedMatchSummary = response.data;
           setSummaryData(response.data);
+          console.log("Fetched match summary:", response.data);
 
         }
       } catch (error) {
