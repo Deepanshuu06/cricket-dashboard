@@ -5,9 +5,7 @@ import { MdSportsCricket } from "react-icons/md";
 import "../styles/scoreBanner.css";
 import useScoreStore from "../hooks/useScoreStore";
 
-// Accept the new themeColors object
 const ScoreBanner = ({ onTeamClick, onScoreClick, team1Logo, team2Logo, themeColors, onFlagClick }) => {
-
   const data = useScoreStore((state) => state.liveData);
   if (!data) return null;
 
@@ -30,6 +28,73 @@ const ScoreBanner = ({ onTeamClick, onScoreClick, team1Logo, team2Logo, themeCol
   const resultText = data?.result_number;
   const isLongText = resultText?.length > 3;
 
+  // Format the result text for reliable comparison
+  const resultType = String(resultText || "").toUpperCase().trim();
+
+  // Function to render the dynamic center animation based on the result
+  const renderResultAnimation = () => {
+    const animKey = `${batting.score}-${resultType}`;
+
+    if (resultType === "6") {
+      return (
+        <motion.div
+          key={animKey}
+          initial={{ scale: 0.2, opacity: 0, rotate: -20 }}
+          animate={{ scale: [1.5, 1, 1.1, 1], opacity: 1, rotate: 0 }}
+          transition={{ duration: 0.8, type: "spring", bounce: 0.6 }}
+          className="text-yellow-400 font-black text-[180px] leading-[0.8] drop-shadow-[0_0_35px_rgba(250,204,21,0.8)] z-20 flex items-center justify-center"
+        >
+          {resultText}
+        </motion.div>
+      );
+    }
+
+    if (resultType === "4") {
+      return (
+        <motion.div
+          key={animKey}
+          initial={{ x: -200, skewX: -30, opacity: 0 }}
+          animate={{ x: 0, skewX: 0, opacity: 1 }}
+          transition={{ duration: 0.6, type: "spring", bounce: 0.5 }}
+          className="text-blue-400 font-black text-[180px] leading-[0.8] drop-shadow-[0_0_35px_rgba(96,165,250,0.8)] z-20 flex items-center justify-center"
+        >
+          {resultText}
+        </motion.div>
+      );
+    }
+
+    if (resultType === "W" || resultType.includes("WICKET") || resultType.includes("OUT") || resultType.includes("LBW")) {
+      return (
+        <motion.div
+          key={animKey}
+          initial={{ y: -100, scale: 1.5, opacity: 0 }}
+          animate={{ y: 0, scale: 1, opacity: 1 }}
+          transition={{ duration: 0.7, type: "spring", bounce: 0.7 }}
+          // FIXED: Controlled flex layout to center-align multi-word strings like "LBW OUT" perfectly without misalignment
+          className="text-red-500 font-black text-[70px] uppercase tracking-wider leading-[1.1] drop-shadow-[0_0_40px_rgba(239,68,68,0.9)] z-20 flex flex-col items-center justify-center text-center w-full px-2"
+        >
+          {resultText}
+        </motion.div>
+      );
+    }
+
+    // Default Fallback
+    return (
+      <motion.span
+        key={animKey}
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className={`text-white font-black text-center text-shadow-heavy z-10 flex items-center justify-center ${
+          isLongText
+            ? "text-[50px] uppercase tracking-wider leading-[1.1]"
+            : "text-[180px] leading-[0.8]"
+        }`}
+      >
+        {resultText}
+      </motion.span>
+    );
+  };
+
   return (
     <div className="relative w-[1920px] h-[250px] bg-transparent font-sans overflow-hidden">
       <div className="absolute top-[20px] left-0 w-full flex h-[230px] shadow-[0_20px_50px_rgba(0,0,0,0.9)] z-30 border-b-[6px] border-gray-400 bg-gray-900">
@@ -44,7 +109,6 @@ const ScoreBanner = ({ onTeamClick, onScoreClick, team1Logo, team2Logo, themeCol
 
         {/* --- Batting Team Section (Left) --- */}
         <div className="relative flex-1 flex flex-col">
-          {/* Header using custom color */}
           <div 
             onClick={() => onTeamClick && onTeamClick(0)}
             style={{ backgroundColor: themeColors.t1Header }}
@@ -56,7 +120,6 @@ const ScoreBanner = ({ onTeamClick, onScoreClick, team1Logo, team2Logo, themeCol
             <GiCricketBat className="text-yellow-300 text-4xl drop-shadow-md origin-bottom-right -rotate-12 pointer-events-none" />
           </div>
 
-          {/* Main Body using custom color fading to black */}
           <div 
             style={{ background: `linear-gradient(to bottom, ${themeColors.t1Bg}, #000000)` }}
             className="relative flex-1 flex items-center justify-start pl-8 pr-[160px] overflow-hidden"
@@ -91,7 +154,7 @@ const ScoreBanner = ({ onTeamClick, onScoreClick, team1Logo, team2Logo, themeCol
         </div>
 
         {/* --- Center Section --- */}
-        <div className="relative w-[1100px] bg-[#0a0f1c] flex flex-col justify-center items-center border-x-[4px] border-gray-800 overflow-hidden z-10 px-[130px]">
+        <div className="relative w-[1100px] bg-[#0a0f1c] flex flex-col justify-center items-center border-x-[4px] border-gray-800 overflow-hidden z-10 px-[40px]">
           <div className="absolute inset-0 flex items-center justify-center gap-[6px] opacity-40 z-0">
             {[...Array(24)].map((_, i) => (
               <div
@@ -105,20 +168,11 @@ const ScoreBanner = ({ onTeamClick, onScoreClick, team1Logo, team2Logo, themeCol
             ))}
           </div>
 
-          <span
-            className={`text-white font-black text-center text-shadow-heavy z-10 ${
-              isLongText
-                ? "text-[55px] uppercase tracking-wider leading-[1.1]"
-                : "text-[150px] leading-[0.8]"
-            }`}
-          >
-            {resultText}
-          </span>
+          {renderResultAnimation()}
         </div>
 
         {/* --- Bowling Team Section (Right) --- */}
         <div className="relative flex-1 flex flex-col">
-          {/* Header using custom color */}
           <div 
             onClick={() => onTeamClick && onTeamClick(1)}
             style={{ backgroundColor: themeColors.t2Header }}
@@ -130,7 +184,6 @@ const ScoreBanner = ({ onTeamClick, onScoreClick, team1Logo, team2Logo, themeCol
             <MdSportsCricket className="text-red-500 bg-white rounded-full text-4xl shadow-[0_0_10px_rgba(255,255,255,0.5)] pointer-events-none" />
           </div>
 
-          {/* Main Body using custom color fading to black */}
           <div 
             style={{ background: `linear-gradient(to bottom, ${themeColors.t2Bg}, #000000)` }}
             className="relative flex-1 flex items-center justify-end pr-8 pl-[160px] overflow-hidden"

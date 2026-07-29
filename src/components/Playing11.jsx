@@ -71,6 +71,7 @@ const Playing11 = ({ initialTeamIndex = 0, onClose }) => {
         if (response.data && response.data.success) {
           cachedPlaying11 = response.data;
           setTeamData(response.data);
+          console.log("Playing XI data fetched and cached:", response.data);
 
         }
       } catch (error) {
@@ -105,7 +106,8 @@ const Playing11 = ({ initialTeamIndex = 0, onClose }) => {
   const activeTeamName = teamData.teams[activeTeamIndex];
   const currentPlayers = teamData.by_team[activeTeamName] || [];
   
-  const captain = currentPlayers.find(p => p.role?.toLowerCase().includes('captain') || p.role?.toLowerCase() === 'c') || currentPlayers[0];
+  // UPDATED: Find the captain using the new boolean field
+  const captain = currentPlayers.find(p => p.is_captain === true) || currentPlayers[0];
   const gridPlayers = currentPlayers.filter(p => p.name !== captain?.name);
 
   return (
@@ -193,7 +195,6 @@ const Playing11 = ({ initialTeamIndex = 0, onClose }) => {
                   <img 
                     src={captain.jersey_image} 
                     alt="Card Background" 
-                    // FIXED: Added object-bottom here so it aligns exactly like the profile image
                     className="absolute h-[240px] bottom-0 w-full z-10" 
                   />
                 )}
@@ -213,6 +214,8 @@ const Playing11 = ({ initialTeamIndex = 0, onClose }) => {
                 <div className="bg-[#1a2b50] py-2 flex flex-col items-center justify-center">
                   <span className="text-white font-bold text-[35px] leading-none uppercase tracking-wide" style={{ fontFamily: 'Oswald, sans-serif' }}>
                     {captain.name}
+                    {/* Added tag for Wicket Keeper if applicable */}
+                    {captain.is_wicket_keeper && <span className="text-yellow-400 text-[20px] ml-2">(WK)</span>}
                   </span>
                 </div>
                 <div className="bg-white py-1 flex items-center justify-center border-t-[2px] border-gray-400">
@@ -241,7 +244,6 @@ const Playing11 = ({ initialTeamIndex = 0, onClose }) => {
                     <img 
                       src={player.jersey_image} 
                       alt="Card Background" 
-                      // FIXED: Added object-bottom here to match the profile image
                       className="absolute bottom-0 w-full z-10" 
                     />
                   )}
@@ -258,8 +260,13 @@ const Playing11 = ({ initialTeamIndex = 0, onClose }) => {
                 </div>
 
                 <div className="flex flex-col border-t-[3px] border-black h-[75px] z-10">
-                  <div className="bg-[#1a2b50] flex-1 flex items-center justify-center px-1">
-                    <span className="text-white font-bold text-[24px] leading-[1.1] uppercase text-center" style={{ fontFamily: 'Oswald, sans-serif' }}>{player.name}</span>
+                  <div className="bg-[#1a2b50] flex-1 flex flex-col items-center justify-center px-1">
+                    <span className="text-white font-bold text-[24px] leading-[1.1] uppercase text-center flex items-center gap-1" style={{ fontFamily: 'Oswald, sans-serif' }}>
+                      {player.name}
+                      {/* Added visual tags for WK and VC so it isn't lost on the UI */}
+                      {player.is_wicket_keeper && <span className="text-yellow-400 text-[14px]">(WK)</span>}
+                      {player.is_vice_captain && <span className="text-blue-400 text-[14px]">(VC)</span>}
+                    </span>
                   </div>
                   <div className="bg-white h-[28px] flex items-center justify-center border-t-[2px] border-gray-400">
                     <span className="text-black font-black text-[22px] uppercase" style={{ fontFamily: 'Oswald, sans-serif' }}>{player.role || "PLAYER"}</span>

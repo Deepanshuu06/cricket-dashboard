@@ -46,7 +46,7 @@ const MatchSummary = ({ onClose }) => {
         if (response.data) {
           // cachedMatchSummary = response.data;
           setSummaryData(response.data);
-          console.log("Fetched match summary:", response.data);
+
 
         }
       } catch (error) {

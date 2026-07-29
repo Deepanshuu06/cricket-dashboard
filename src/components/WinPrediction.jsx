@@ -39,7 +39,7 @@ const WinPrediction = ({ onClose }) => {
   // ==========================================
   
   // CHANGE THIS TO 50 FOR ODI, 10 FOR T10, etc.
-  const totalOvers = 20; 
+  const totalOvers = 50; 
 
   // 1. Extract Current Score & Overs from liveData safely
   const rawScore = data?.first_innings?.score || "0-0";
@@ -55,9 +55,14 @@ const WinPrediction = ({ onClose }) => {
   // Extract or calculate CRR
   const currentRR = parseFloat(data?.crr || (runs / (oversInDecimal || 1)).toFixed(2));
 
-  // 2. Calculate Manual Projected Scores
-  // Rates we want to project: CRR, 10 RPO, 12 RPO, 15 RPO
-  const manualRates = [currentRR, 10.00, 12.00, 15.00];
+  // 2. Calculate Dynamic Projected Scores
+  // Rates automatically adjust based on the CRR instead of using fixed values
+  const manualRates = [
+    currentRR, 
+    currentRR + 2.00, 
+    currentRR + 4.00, 
+    currentRR + 6.00
+  ];
   
   const chunkedScores = [
     manualRates.map(rate => Math.floor(runs + (oversRemaining * rate)))
@@ -126,7 +131,7 @@ const WinPrediction = ({ onClose }) => {
           animate="visible"
           className="relative z-10 flex flex-col w-full gap-8"
         >
-          {/* --- WIN PROBABILITY SECTION (Restored & Manual) --- */}
+          {/* --- WIN PROBABILITY SECTION --- */}
           <motion.div variants={itemVariant} className="bg-[#112240] border-[2px] border-gray-700 p-6 rounded-2xl shadow-xl">
              <div className="flex justify-between items-center mb-4">
                <h3 className="text-white font-black text-2xl uppercase tracking-wider flex items-center gap-3" style={{ fontFamily: 'Oswald, sans-serif' }}>

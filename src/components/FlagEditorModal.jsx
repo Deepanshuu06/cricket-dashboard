@@ -57,9 +57,9 @@ const FlagEditorModal = ({
             
             <div className="flex flex-col gap-3">
               {/* INCREASED: text-sm -> text-xl */}
-              <label className="text-gray-400 text-xl font-bold uppercase">Flag URL</label>
+              <label className="text-gray-400 text-xl font-bold uppercase">Flag</label>
               <input
-                type="text"
+                type="password"
                 value={team1Url}
                 onChange={(e) => setTeam1Url(e.target.value)}
                 // INCREASED: p-2 -> p-4, text size -> text-2xl
@@ -84,9 +84,9 @@ const FlagEditorModal = ({
             <h3 className="text-blue-400 font-bold uppercase tracking-wider text-3xl">Team 2 (Right)</h3>
             
             <div className="flex flex-col gap-3">
-              <label className="text-gray-400 text-xl font-bold uppercase">Flag URL</label>
+              <label className="text-gray-400 text-xl font-bold uppercase">Flag</label>
               <input
-                type="text"
+                type="password"
                 value={team2Url}
                 onChange={(e) => setTeam2Url(e.target.value)}
                 className="w-full bg-gray-800 text-white p-4 text-2xl border-2 border-gray-600 focus:border-blue-500 focus:outline-none"

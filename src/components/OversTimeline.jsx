@@ -2,9 +2,9 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useScoreStore from '../hooks/useScoreStore';
 
-const OversTimeline = () => {
+const OversTimeline = ({ onSubscribeClick }) => {
   const data = useScoreStore((state) => state.liveData);
-  console.log('result_number:', data);
+
 
   // Process the nested timeline structure based on your JSON payload
   const processTimeline = (timeline) => {
@@ -163,7 +163,7 @@ const OversTimeline = () => {
         <div className="flex h-[105px] w-full bg-[#03152d]">
           
           {/* Left Side: SUBSCRIBE Button Tab */}
-          <div className="relative w-[340px] bg-gradient-to-b from-[#4ba3e3] to-[#2573b9] flex items-center justify-center border-r-[5px] border-[#0a192f] shadow-[6px_0_15px_rgba(0,0,0,0.7)] z-20 overflow-hidden">
+          <div onClick={onSubscribeClick} className=" cursor-pointer relative w-[340px] bg-gradient-to-b from-[#4ba3e3] to-[#2573b9] flex items-center justify-center border-r-[5px] border-[#0a192f] shadow-[6px_0_15px_rgba(0,0,0,0.7)] z-20 overflow-hidden">
             
             {/* Shining Sweep overlay */}
             <div className="shine-layer" style={{ animationDelay: '0.5s' }} />

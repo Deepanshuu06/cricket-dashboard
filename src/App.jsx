@@ -12,8 +12,11 @@ import WinPrediction from "./components/WinPrediction";
 import PartnershipOverlay from "./components/PartnershipOverlay";
 import BatsmanStatsOverlay from "./components/BatsmanStatsOverlay";
 import FlagEditorModal from "./components/FlagEditorModal";
+import SeriesStatsModal from "./components/SeriesStatsModal";
+import ImageCarousel from "./components/ImageCarousel"; // 👈 Import new component
 
 const App = () => {
+  // Existing states
   const [showPlaying11, setShowPlaying11] = useState(false);
   const [targetTeamIndex, setTargetTeamIndex] = useState(0);
   const [showSummary, setShowSummary] = useState(false);
@@ -23,13 +26,16 @@ const App = () => {
   const [showBatsmanStats, setShowBatsmanStats] = useState(true);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [showPlayerStats, setShowPlayerStats] = useState(false);
+  const [showSeriesStats, setShowSeriesStats] = useState(false); 
+
+  // --- NEW STATE FOR SLIDESHOW ---
+  const [showSlideshow, setShowSlideshow] = useState(false); 
 
   // --- FLAGS & THEME STATES ---
   const [showFlagEditor, setShowFlagEditor] = useState(false);
-  const [team1Flag, setTeam1Flag] = useState("https://upload.wikimedia.org/wikipedia/en/thumb/4/41/Flag_of_India.svg/330px-Flag_of_India.svg.png");
-  const [team2Flag, setTeam2Flag] = useState("https://upload.wikimedia.org/wikipedia/en/thumb/4/41/Flag_of_India.svg/330px-Flag_of_India.svg.png");
+  const [team1Flag, setTeam1Flag] = useState("");
+  const [team2Flag, setTeam2Flag] = useState("");
   
-  // Default hex codes approximating your previous Tailwind classes
   const [bannerTheme, setBannerTheme] = useState({
     t1Bg: "#3b5bdb",
     t1Header: "#ea580c",
@@ -39,7 +45,6 @@ const App = () => {
 
   const handleFlagClick = () => setShowFlagEditor(true);
 
-  // Updated save handler to accept the object from the modal
   const handleSaveTheme = (newData) => {
     setTeam1Flag(newData.team1Flag);
     setTeam2Flag(newData.team2Flag);
@@ -59,6 +64,7 @@ const App = () => {
   const handleOpenMatchSummary = () => setShowSummary(true);
   const handleWinPredictionClick = () => setShowWinPred(true);
   const handleShowPartnershipOverlay = () => setShowPartnershipOverlay((prev) => !prev);
+  const handleShowSeriesStats = () => setShowSeriesStats((prev) => !prev);
 
   const sampleWinPrediction = {
     projected_score: { rates: ['9.85*', '9.00', '10.00', '11.00'], scores: ['196', '193', '197', '202'] },
@@ -67,9 +73,16 @@ const App = () => {
   };
 
   return (
-    <div className="relative w-[1920px] h-[1080px] bg-transparent overflow-hidden">
+    // Changed layout to flex-col to easily adapt remaining middle space for the carousel
+    <div className="relative w-[1920px] h-[1080px] bg-transparent overflow-hidden flex flex-col">
       
-      {/* Passing down the theme object and flag URLs */}
+      {/* 🔴 HIDDEN TRIGGER FOR SLIDESHOW (Top Right corner above banner limits) */}
+      <div 
+        className="absolute top-0 right-0 w-[50px] h-[50px] z-50 cursor-pointer"
+        onClick={() => setShowSlideshow(true)} 
+        title="Hidden Trigger: Click to open Slideshow"
+      />
+
       <ScoreBanner 
         onTeamClick={handleOpenPlaying11} 
         onScoreClick={handleOpenVenueInfo} 
@@ -79,13 +92,19 @@ const App = () => {
         onFlagClick={handleFlagClick}
       />
       
-      <MainContentGrid>
-        <BattingStatsBoard onBatsmanClick={handleOpenMatchSummary} onRunClick={handleWinPredictionClick} onSrClick={handleShowPartnershipOverlay} onPlayerClick={handlePlayerClick} />
-        <LiveGraphicArea />
-      </MainContentGrid>
+      {/* 👈 CONDITIONALLY RENDER MAIN GRID OR CAROUSEL */}
+      {showSlideshow ? (
+        <ImageCarousel onClose={() => setShowSlideshow(false)} />
+      ) : (
+        <MainContentGrid>
+          <BattingStatsBoard onBatsmanClick={handleOpenMatchSummary} onRunClick={handleWinPredictionClick} onSrClick={handleShowPartnershipOverlay} onPlayerClick={handlePlayerClick} />
+          <LiveGraphicArea />
+        </MainContentGrid>
+      )}
       
-      <OversTimeline />
+      <OversTimeline onSubscribeClick={handleShowSeriesStats} />
 
+      {/* Overlays remain unchanged */}
       <AnimatePresence>
         {showPlaying11 && (
           <div className="absolute inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center">
@@ -100,7 +119,6 @@ const App = () => {
       <AnimatePresence>{showPartnershipOverlay && <PartnershipOverlay />}</AnimatePresence>
       <AnimatePresence>{showPlayerStats && selectedPlayer && <BatsmanStatsOverlay player={selectedPlayer} onClose={() => setShowPlayerStats(false)} />}</AnimatePresence>
 
-      {/* --- THEME EDITOR MODAL --- */}
       <AnimatePresence>
         {showFlagEditor && (
           <FlagEditorModal 
@@ -110,6 +128,12 @@ const App = () => {
             onSave={handleSaveTheme} 
             onClose={() => setShowFlagEditor(false)} 
           />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showSeriesStats && (
+          <SeriesStatsModal onClose={() => setShowSeriesStats(false)} />
         )}
       </AnimatePresence>
       

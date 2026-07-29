@@ -64,7 +64,7 @@ const BatsmanVideo = () => {
             />
 
             {/* 2. Inner solid red oval: Shrunk to 160x220 to create a thick 10px border */}
-            <div className="absolute w-[160px] h-[220px] bg-red-600 rounded-[50%] z-10 overflow-hidden">
+            <div className="absolute w-[200px] h-[210px] bg-red-600 rounded-[50%] z-10 overflow-hidden">
               
               {/* 3. Shining Background Sweep: A glassy reflection moving left to right */}
               <div 
@@ -77,12 +77,12 @@ const BatsmanVideo = () => {
           {/* ======================================================== */}
 
           <img 
-            className="w-35 h-35 object-contain relative top-10 z-20" 
+            className="w-35 h-35 object-contain relative top-13 z-20" 
             src={data?.players?.bowler?.img} 
             alt="bowler head" 
           />
           <img 
-            className="w-35 h-35 object-contain -mt-8 z-20 rounded-bl-2xl" 
+            className="w-35 h-35 object-contain -mt-8 z-20 rounded-bl-2xl " 
             src={data?.players?.bowler?.jersey} 
             alt="bowler jersey" 
           />
