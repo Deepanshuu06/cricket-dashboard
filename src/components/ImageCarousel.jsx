@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaTimes, FaUndo, FaPlus, FaTrash } from "react-icons/fa";
+import { FaTimes, FaUndo, FaPlus, FaTrash, FaSearchPlus, FaSearchMinus, FaExpand } from "react-icons/fa";
 
 const ImageCarousel = ({ onClose }) => {
   const [images, setImages] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [inputs, setInputs] = useState([""]);
+
+  // --- Zoom & Scale States for Resizing ---
+  const [scale, setScale] = useState(1);
 
   const handleInputChange = (index, value) => {
     const newInputs = [...inputs];
@@ -31,6 +34,7 @@ const ImageCarousel = ({ onClose }) => {
     if (validLinks.length > 0) {
       setImages(validLinks);
       setCurrentIndex(0);
+      setScale(1); // Reset zoom on start
     }
   };
 
@@ -38,14 +42,17 @@ const ImageCarousel = ({ onClose }) => {
     setImages([]);
     setInputs([""]);
     setCurrentIndex(0);
+    setScale(1);
   };
 
   const nextSlide = () => {
     setCurrentIndex((prev) => (prev + 1) % images.length);
+    setScale(1); // Reset zoom when switching slides
   };
 
   const prevSlide = () => {
     setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+    setScale(1); // Reset zoom when switching slides
   };
 
   // --- Keyboard navigation listener ---
@@ -65,12 +72,12 @@ const ImageCarousel = ({ onClose }) => {
   }, [images.length]);
 
   return (
-    <div className="w-[1920px] flex-1 min-h-[600px] flex bg-gray-900 border-x-[4px] border-black overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative justify-center items-center">
+    <div className="w-[1920px] flex-1 min-h-[600px] flex bg-gray-900 border-x-[4px] border-black overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative justify-center items-center select-none">
       
       {/* Top Right Close Button */}
       <button 
         onClick={onClose} 
-        className="absolute top-4 right-4 z-50 text-white bg-red-600 p-3 rounded-full shadow-lg hover:bg-red-500 transition-all"
+        className="absolute top-4 right-4 z-50 text-white bg-red-600 p-3 rounded-full shadow-lg hover:bg-red-500 transition-all cursor-pointer"
       >
         <FaTimes size={24} />
       </button>
@@ -98,7 +105,7 @@ const ImageCarousel = ({ onClose }) => {
                 />
                 <button
                   onClick={() => handleRemoveInput(index)}
-                  className="p-3 text-red-500 hover:text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-xl transition-all"
+                  className="p-3 text-red-500 hover:text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-xl transition-all cursor-pointer"
                   title="Remove Link"
                 >
                   <FaTrash size={20} />
@@ -110,13 +117,13 @@ const ImageCarousel = ({ onClose }) => {
           <div className="flex gap-4 w-full justify-center">
             <button 
               onClick={handleAddInput} 
-              className="px-6 py-3 bg-gray-700 text-white text-xl font-bold rounded-xl hover:bg-gray-600 transition-all flex items-center gap-2 border border-gray-500"
+              className="px-6 py-3 bg-gray-700 text-white text-xl font-bold rounded-xl hover:bg-gray-600 transition-all flex items-center gap-2 border border-gray-500 cursor-pointer"
             >
               <FaPlus /> Add URL
             </button>
             <button 
               onClick={handleStart} 
-              className="px-10 py-3 bg-blue-600 text-white text-xl font-bold uppercase tracking-wider rounded-xl hover:bg-blue-500 shadow-[0_0_15px_rgba(37,99,235,0.5)] transition-all"
+              className="px-10 py-3 bg-blue-600 text-white text-xl font-bold uppercase tracking-wider rounded-xl hover:bg-blue-500 shadow-[0_0_15px_rgba(37,99,235,0.5)] transition-all cursor-pointer"
             >
               Start Slideshow
             </button>
@@ -125,23 +132,61 @@ const ImageCarousel = ({ onClose }) => {
       ) : (
         // --- SLIDESHOW SCREEN ---
         <div className="relative w-full h-full flex items-center justify-center group bg-black overflow-hidden">
+          
+          {/* Draggable and Resizable Image Container */}
           <AnimatePresence mode="wait">
-            <motion.img
+            <motion.div
               key={currentIndex}
-              src={images[currentIndex]}
-              alt={`Slide ${currentIndex + 1}`}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 1.05 }}
               transition={{ duration: 0.4 }}
-              className="absolute w-full h-full object-contain"
-            />
+              className="absolute inset-0 flex items-center justify-center overflow-hidden"
+            >
+              <motion.img
+                src={images[currentIndex]}
+                alt={`Slide ${currentIndex + 1}`}
+                drag
+                dragConstraints={{ left: -500, right: 500, top: -300, bottom: 300 }}
+                style={{ scale }}
+                className="max-w-full max-h-full object-contain cursor-grab active:cursor-grabbing"
+              />
+            </motion.div>
           </AnimatePresence>
 
-          {/* Reset Links Icon Button (Only Icon, Appears on Hover) */}
+          {/* --- Resize & Adjustment Control Toolbar (Appears on Hover) --- */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-black/80 px-5 py-3 rounded-full border border-gray-700 shadow-2xl backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-300 z-30">
+            <button
+              onClick={() => setScale((prev) => Math.max(prev - 0.1, 0.4))}
+              className="text-white hover:text-blue-400 p-2 transition-colors cursor-pointer"
+              title="Zoom Out (Resize Smaller)"
+            >
+              <FaSearchMinus size={20} />
+            </button>
+            <span className="text-gray-300 font-mono text-sm w-12 text-center">
+              {Math.round(scale * 100)}%
+            </span>
+            <button
+              onClick={() => setScale((prev) => Math.min(prev + 0.1, 3.0))}
+              className="text-white hover:text-blue-400 p-2 transition-colors cursor-pointer"
+              title="Zoom In (Resize Larger)"
+            >
+              <FaSearchPlus size={20} />
+            </button>
+            <div className="w-[1px] h-5 bg-gray-600 mx-1" />
+            <button
+              onClick={() => setScale(1)}
+              className="text-white hover:text-blue-400 p-2 transition-colors cursor-pointer flex items-center gap-1 text-sm font-semibold"
+              title="Reset Size Fit"
+            >
+              <FaExpand size={16} /> Fit
+            </button>
+          </div>
+
+          {/* Reset Links Icon Button (Appears on Hover) */}
           <button 
             onClick={handleReset} 
-            className="absolute bottom-8 right-8 text-white bg-orange-600 p-4 rounded-full shadow-xl opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-orange-500 z-30"
+            className="absolute bottom-8 right-8 text-white bg-orange-600 p-4 rounded-full shadow-xl opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-orange-500 z-30 cursor-pointer"
             title="Reset Links"
           >
             <FaUndo size={22} />

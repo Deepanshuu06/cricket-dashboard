@@ -189,7 +189,7 @@ const SeriesStatsModal = ({ onClose }) => {
               </h3>
               <form onSubmit={handleSubmitUrl} className="w-full flex gap-6 mt-10">
                 <input
-                  type="password"
+                  type="url"
                   required
                   placeholder="Series URL"
                   value={inputUrl}
