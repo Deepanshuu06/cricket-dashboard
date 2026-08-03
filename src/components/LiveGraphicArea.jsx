@@ -12,6 +12,26 @@ import PitchBallTracking from './PitchBallTracking';
 const LiveGraphicArea = () => {
   const data = useScoreStore((state) => state.liveData);
   const [overlay, setOverlay] = useState(null); // 'wide' | 'six' | 'four' | 'no-ball' | 'wicket' | null
+  
+  // 1. New state for the black screen toggle
+  const [isBlackScreen, setIsBlackScreen] = useState(false);
+  console.log(data)
+
+  // 2. Keyboard shortcut listener
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Prevent triggering when typing in an input field
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+
+      // Toggle black screen when '1' is pressed
+      if (e.key === '1') {
+        setIsBlackScreen((prev) => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Safely convert both values to lower-case strings to check for text matches
   const resultText = data?.result_text?.toString().toLowerCase() || '';
@@ -40,6 +60,7 @@ const LiveGraphicArea = () => {
   const isNoBall = resultText.includes('no ball') || rawResultNumber.includes('no ball');
   const isWicket = resultText.includes('wicket') || rawResultNumber.includes('wicket');
   const isRunOutCheck = resultText.includes('run out check') || rawResultNumber.includes('run out check');
+  
   useEffect(() => {
     let timer;
 
@@ -67,14 +88,20 @@ const LiveGraphicArea = () => {
   // FIX 2: Added missing dependencies so the timer reacts correctly to all score changes
   }, [data?.result_text, data?.result_number, isWide, isSix, isFour, isNoBall, isWicket]);
 
-  // 1. Show temporary umpire animation
+
+  // 3. Render the Black Screen if activated (Overrides everything else)
+  if (isBlackScreen) {
+    return <div className="w-full h-full bg-black z-50"></div>;
+  }
+
+  // 4. Show temporary umpire animation
   if (overlay === 'wide') return <UmpireWide />;
   if (overlay === 'six') return <UmpireSix />;
   if (overlay === 'four') return <UmpireFour />;
   if (overlay === 'no-ball') return <UmpireNoBall />;
   if (overlay === 'wicket') return <UmpireWicket />;
 
-  // 2. Main display logic
+  // 5. Main display logic
   // FIX 3: Ensure that if it is a No Ball or Wicket, it ALWAYS fails this check 
   // so that it safely falls back to rendering the BatsmanVideo.
   const isWagonWheel = (!isNoBall && !isWicket) && ([0, 1, 2, 3, 4, 5, 6].includes(numericResult) || isWide);

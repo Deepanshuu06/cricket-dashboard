@@ -32,16 +32,16 @@ const popVariant = {
 
 const WinPrediction = ({ onClose }) => {
   const [viewMode, setViewMode] = useState('percent'); 
+  // 1. Added state for totalOvers (defaulted to 20 for T20, but you can enter anything)
+  const [totalOvers, setTotalOvers] = useState(20); 
+  
   const data = useScoreStore((state) => state.liveData);
 
   // ==========================================
   // ⚙️ MANUAL CALCULATION VARIABLES
   // ==========================================
-  
-  // CHANGE THIS TO 50 FOR ODI, 10 FOR T10, etc.
-  const totalOvers = 50; 
 
-  // 1. Extract Current Score & Overs from liveData safely
+  // 2. Extract Current Score & Overs from liveData safely
   const rawScore = data?.first_innings?.score || "0-0";
   const rawOvers = data?.first_innings?.overs || "0.0";
   
@@ -55,7 +55,7 @@ const WinPrediction = ({ onClose }) => {
   // Extract or calculate CRR
   const currentRR = parseFloat(data?.crr || (runs / (oversInDecimal || 1)).toFixed(2));
 
-  // 2. Calculate Dynamic Projected Scores
+  // 3. Calculate Dynamic Projected Scores
   // Rates automatically adjust based on the CRR instead of using fixed values
   const manualRates = [
     currentRR, 
@@ -68,9 +68,9 @@ const WinPrediction = ({ onClose }) => {
     manualRates.map(rate => Math.floor(runs + (oversRemaining * rate)))
   ];
 
-  // 3. Calculate Manual Win Prediction (Algorithmic Heuristic)
-  // Assuming a par score of 165 for T20s. Adjust logic based on your match type.
-  const parScore = totalOvers === 20 ? 165 : 280; 
+  // 4. Calculate Manual Win Prediction (Algorithmic Heuristic)
+  // Assuming a par score of 165 for T20s or 280 for ODIs. 
+  const parScore = totalOvers <= 20 ? 165 : 280; 
   const projectedAtCRR = runs + (oversRemaining * currentRR);
   
   // Basic Algorithm: Start at 50%. Gain/lose 1% for every 2 runs above/below par. 
@@ -118,11 +118,27 @@ const WinPrediction = ({ onClose }) => {
           <IoCloseSharp size={38} color="white" />
         </button>
 
-        {/* --- HEADER --- */}
+        {/* --- HEADER & CONTROLS --- */}
         <div className="flex items-center justify-between border-b-[3px] border-[#d4af37] pb-5 mb-8 pr-16 relative z-10">
           <h2 className="text-white font-black text-4xl uppercase tracking-wider" style={{ fontFamily: 'Oswald, sans-serif' }}>
             Probability & Projections
           </h2>
+          
+          {/* 5. Added Match Overs Input Control */}
+          <div className="flex items-center gap-3 bg-[#112240] px-4 py-2 rounded-lg border border-gray-600 shadow-md">
+            <label htmlFor="over-input" className="text-gray-300 font-bold uppercase tracking-wide text-sm">
+              Match Overs:
+            </label>
+            <input 
+              id="over-input"
+              type="number"
+              value={totalOvers}
+              onChange={(e) => setTotalOvers(Number(e.target.value) || 0)}
+              className="w-16 bg-[#0a1628] text-[#d4af37] font-black text-center text-lg border border-gray-500 rounded focus:outline-none focus:border-[#d4af37] transition-colors"
+              min="1"
+              max="100"
+            />
+          </div>
         </div>
 
         <motion.div

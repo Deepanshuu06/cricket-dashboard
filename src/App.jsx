@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import ScoreBanner from "./components/ScoreBanner";
 import MainContentGrid from "./components/MainContentGrid";
@@ -13,7 +13,7 @@ import PartnershipOverlay from "./components/PartnershipOverlay";
 import BatsmanStatsOverlay from "./components/BatsmanStatsOverlay";
 import FlagEditorModal from "./components/FlagEditorModal";
 import SeriesStatsModal from "./components/SeriesStatsModal";
-import ImageCarousel from "./components/ImageCarousel"; // 👈 Import new component
+import ImageCarousel from "./components/ImageCarousel";
 
 const App = () => {
   // Existing states
@@ -27,8 +27,6 @@ const App = () => {
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [showPlayerStats, setShowPlayerStats] = useState(false);
   const [showSeriesStats, setShowSeriesStats] = useState(false); 
-
-  // --- NEW STATE FOR SLIDESHOW ---
   const [showSlideshow, setShowSlideshow] = useState(false); 
 
   // --- FLAGS & THEME STATES ---
@@ -43,8 +41,66 @@ const App = () => {
     t2Header: "#1e40af"
   });
 
-  const handleFlagClick = () => setShowFlagEditor(true);
+  // ==========================================
+  // 🧹 HELPER TO CLOSE EVERYTHING
+  // ==========================================
+  const closeAllOverlays = () => {
+    setShowPlaying11(false);
+    setShowSummary(false);
+    setShowVenueInfo(false);
+    setShowWinPred(false);
+    setShowPartnershipOverlay(false);
+    setShowPlayerStats(false);
+    setShowFlagEditor(false);
+    setShowSeriesStats(false);
+    setShowSlideshow(false);
+  };
 
+  // ==========================================
+  // ⌨️ KEYBOARD SHORTCUTS HOOK
+  // ==========================================
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Prevent triggering shortcuts when typing in input fields (like the overs input)
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+
+      // Smart toggle: If it's open, close it. If it's closed, close EVERYTHING else and open it.
+      const toggle = (currentState, setter) => {
+        if (currentState) {
+          setter(false);
+        } else {
+          closeAllOverlays();
+          setter(true);
+        }
+      };
+
+      switch (e.key.toLowerCase()) {
+        case 'p': toggle(showPlaying11, setShowPlaying11); break;
+        case 'm': toggle(showSummary, setShowSummary); break;
+        case 'v': toggle(showVenueInfo, setShowVenueInfo); break;
+        case 'w': toggle(showWinPred, setShowWinPred); break;
+        case 'o': toggle(showPartnershipOverlay, setShowPartnershipOverlay); break;
+        case 'c': toggle(showSlideshow, setShowSlideshow); break;
+        case 'f': toggle(showFlagEditor, setShowFlagEditor); break;
+        case 's': toggle(showSeriesStats, setShowSeriesStats); break;
+        case 'escape': closeAllOverlays(); break; // Escape clears the screen
+        default: break;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    showPlaying11, showSummary, showVenueInfo, showWinPred, 
+    showPartnershipOverlay, showPlayerStats, showFlagEditor, 
+    showSeriesStats, showSlideshow
+  ]); // Dependencies added so the shortcut toggle always knows what is currently open
+
+  // ==========================================
+  // 🖱️ UI CLICK HANDLERS (Now mutually exclusive)
+  // ==========================================
+  const handleFlagClick = () => { closeAllOverlays(); setShowFlagEditor(true); };
+  
   const handleSaveTheme = (newData) => {
     setTeam1Flag(newData.team1Flag);
     setTeam2Flag(newData.team2Flag);
@@ -57,14 +113,41 @@ const App = () => {
     setShowFlagEditor(false);
   };
 
-  const handlePlayerClick = (playerData) => { setSelectedPlayer(playerData); setShowPlayerStats(true); };
-  const handleOpenPlaying11 = (index) => { setTargetTeamIndex(index); setShowPlaying11(true); };
+  const handlePlayerClick = (playerData) => { 
+    closeAllOverlays(); 
+    setSelectedPlayer(playerData); 
+    setShowPlayerStats(true); 
+  };
+  
+  const handleOpenPlaying11 = (index) => { 
+    closeAllOverlays(); 
+    setTargetTeamIndex(index); 
+    setShowPlaying11(true); 
+  };
+  
   const handleClosePlaying11 = () => setShowPlaying11(false);
-  const handleOpenVenueInfo = () => setShowVenueInfo(true);
-  const handleOpenMatchSummary = () => setShowSummary(true);
-  const handleWinPredictionClick = () => setShowWinPred(true);
-  const handleShowPartnershipOverlay = () => setShowPartnershipOverlay((prev) => !prev);
-  const handleShowSeriesStats = () => setShowSeriesStats((prev) => !prev);
+  
+  const handleOpenVenueInfo = () => { closeAllOverlays(); setShowVenueInfo(true); };
+  const handleOpenMatchSummary = () => { closeAllOverlays(); setShowSummary(true); };
+  const handleWinPredictionClick = () => { closeAllOverlays(); setShowWinPred(true); };
+  
+  const handleShowPartnershipOverlay = () => {
+    if (showPartnershipOverlay) {
+      setShowPartnershipOverlay(false);
+    } else {
+      closeAllOverlays();
+      setShowPartnershipOverlay(true);
+    }
+  };
+
+  const handleShowSeriesStats = () => {
+    if (showSeriesStats) {
+      setShowSeriesStats(false);
+    } else {
+      closeAllOverlays();
+      setShowSeriesStats(true);
+    }
+  };
 
   const sampleWinPrediction = {
     projected_score: { rates: ['9.85*', '9.00', '10.00', '11.00'], scores: ['196', '193', '197', '202'] },
@@ -73,13 +156,19 @@ const App = () => {
   };
 
   return (
-    // Changed layout to flex-col to easily adapt remaining middle space for the carousel
     <div className="relative w-[1920px] h-[1080px] bg-transparent overflow-hidden flex flex-col">
       
-      {/* 🔴 HIDDEN TRIGGER FOR SLIDESHOW (Top Right corner above banner limits) */}
+      {/* 🔴 HIDDEN TRIGGER FOR SLIDESHOW */}
       <div 
         className="absolute top-0 right-0 w-[50px] h-[50px] z-50 cursor-pointer"
-        onClick={() => setShowSlideshow(true)} 
+        onClick={() => {
+          if (showSlideshow) {
+            setShowSlideshow(false);
+          } else {
+            closeAllOverlays();
+            setShowSlideshow(true);
+          }
+        }} 
         title="Hidden Trigger: Click to open Slideshow"
       />
 
@@ -92,19 +181,23 @@ const App = () => {
         onFlagClick={handleFlagClick}
       />
       
-      {/* 👈 CONDITIONALLY RENDER MAIN GRID OR CAROUSEL */}
       {showSlideshow ? (
         <ImageCarousel onClose={() => setShowSlideshow(false)} />
       ) : (
         <MainContentGrid>
-          <BattingStatsBoard onBatsmanClick={handleOpenMatchSummary} onRunClick={handleWinPredictionClick} onSrClick={handleShowPartnershipOverlay} onPlayerClick={handlePlayerClick} />
+          <BattingStatsBoard 
+            onBatsmanClick={handleOpenMatchSummary} 
+            onRunClick={handleWinPredictionClick} 
+            onSrClick={handleShowPartnershipOverlay} 
+            onPlayerClick={handlePlayerClick} 
+          />
           <LiveGraphicArea />
         </MainContentGrid>
       )}
       
       <OversTimeline onSubscribeClick={handleShowSeriesStats} />
 
-      {/* Overlays remain unchanged */}
+      {/* Overlays */}
       <AnimatePresence>
         {showPlaying11 && (
           <div className="absolute inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center">
