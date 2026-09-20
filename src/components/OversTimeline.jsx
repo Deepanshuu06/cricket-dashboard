@@ -143,7 +143,7 @@ const OversTimeline = ({ onSubscribeClick }) => {
             />
             {/* Animated Live Text */}
             <span className="text-white font-condensed font-bold text-[36px] tracking-wide animate-live-text">
-              OPEN PATH
+              Your Name
             </span>
           </div>
           

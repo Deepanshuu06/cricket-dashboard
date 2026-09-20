@@ -14,6 +14,11 @@ import BatsmanStatsOverlay from "./components/BatsmanStatsOverlay";
 import FlagEditorModal from "./components/FlagEditorModal";
 import SeriesStatsModal from "./components/SeriesStatsModal";
 import ImageCarousel from "./components/ImageCarousel";
+import RunRateOverlay from "./components/RunRateOverlay";
+import ManhattanOverlay from "./components/ManhattanOverlay";
+import WormOverlay from "./components/WormOverlay";
+import WagonSpikeOverlay from "./components/WagonSpikeOverlay";
+import PlayingXIOverlay from "./components/PlayingXIOverlay";
 
 const App = () => {
   // Existing states
@@ -26,19 +31,24 @@ const App = () => {
   const [showBatsmanStats, setShowBatsmanStats] = useState(true);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [showPlayerStats, setShowPlayerStats] = useState(false);
-  const [showSeriesStats, setShowSeriesStats] = useState(false); 
-  const [showSlideshow, setShowSlideshow] = useState(false); 
+  const [showSeriesStats, setShowSeriesStats] = useState(false);
+  const [showSlideshow, setShowSlideshow] = useState(false);
+  const [showRunRateGraph, setShowRunRateGraph] = useState(false);
+  const [showManhattan, setShowManhattan] = useState(false);
+  const [showWorm, setShowWorm] = useState(false);
+  const [showWagonSpike, setShowWagonSpike] = useState(false);
+  const [showPlayingXIOverlay, setShowPlayingXIOverlay] = useState(false); // New state for Playing XI Overlay
 
   // --- FLAGS & THEME STATES ---
   const [showFlagEditor, setShowFlagEditor] = useState(false);
-  const [team1Flag, setTeam1Flag] = useState("");
-  const [team2Flag, setTeam2Flag] = useState("");
-  
+  const [team1Flag, setTeam1Flag] = useState("https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExZ3UzaGs3d3d4Z2FsbjI1ZXJ4YnEyc2VxY2h2dWY1M2l6NWM1aGE2NyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3TYuocrjKLFC9tuszs/giphy.gif");
+  const [team2Flag, setTeam2Flag] = useState("https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExZzY0Zm5hbWo1MzYyZXQ0bWp2NjFqZndmYzJ1bjZqdmxrNjhvMWJwaCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Qa4cAGMr5NfUuINAXd/giphy.gif");
+
   const [bannerTheme, setBannerTheme] = useState({
     t1Bg: "#3b5bdb",
     t1Header: "#ea580c",
     t2Bg: "#e63946",
-    t2Header: "#1e40af"
+    t2Header: "#1e40af",
   });
 
   // ==========================================
@@ -54,6 +64,11 @@ const App = () => {
     setShowFlagEditor(false);
     setShowSeriesStats(false);
     setShowSlideshow(false);
+    setShowRunRateGraph(false);
+    setShowManhattan(false);
+    setShowWorm(false);
+    setShowWagonSpike(false);
+    setShowPlayingXIOverlay(false);
   };
 
   // ==========================================
@@ -62,7 +77,7 @@ const App = () => {
   useEffect(() => {
     const handleKeyDown = (e) => {
       // Prevent triggering shortcuts when typing in input fields (like the overs input)
-      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName)) return;
 
       // Smart toggle: If it's open, close it. If it's closed, close EVERYTHING else and open it.
       const toggle = (currentState, setter) => {
@@ -75,32 +90,80 @@ const App = () => {
       };
 
       switch (e.key.toLowerCase()) {
-        case 'p': toggle(showPlaying11, setShowPlaying11); break;
-        case 'm': toggle(showSummary, setShowSummary); break;
-        case 'v': toggle(showVenueInfo, setShowVenueInfo); break;
-        case 'w': toggle(showWinPred, setShowWinPred); break;
-        case 'o': toggle(showPartnershipOverlay, setShowPartnershipOverlay); break;
-        case 'c': toggle(showSlideshow, setShowSlideshow); break;
-        case 'f': toggle(showFlagEditor, setShowFlagEditor); break;
-        case 's': toggle(showSeriesStats, setShowSeriesStats); break;
-        case 'escape': closeAllOverlays(); break; // Escape clears the screen
-        default: break;
+        case "p":
+          toggle(showPlaying11, setShowPlaying11);
+          break;
+        case "m":
+          toggle(showSummary, setShowSummary);
+          break;
+        case "v":
+          toggle(showVenueInfo, setShowVenueInfo);
+          break;
+        case "w":
+          toggle(showWinPred, setShowWinPred);
+          break;
+        case "o":
+          toggle(showPartnershipOverlay, setShowPartnershipOverlay);
+          break;
+        case "c":
+          toggle(showSlideshow, setShowSlideshow);
+          break;
+        case "f":
+          toggle(showFlagEditor, setShowFlagEditor);
+          break;
+        case "s":
+          toggle(showSeriesStats, setShowSeriesStats);
+          break;
+        case "escape":
+          closeAllOverlays();
+          break; // Escape clears the screen
+        case "r":
+          toggle(showRunRateGraph, setShowRunRateGraph);
+          break;
+        case "h":
+          toggle(showManhattan, setShowManhattan);
+          break;
+        case "g":
+          toggle(showWorm, setShowWorm);
+          break;
+        case "z":
+          toggle(showWagonSpike, setShowWagonSpike);
+          break;
+        case "x":
+          toggle(showPlayingXIOverlay, setShowPlayingXIOverlay);
+          break;
+        default:
+          break;
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [
-    showPlaying11, showSummary, showVenueInfo, showWinPred, 
-    showPartnershipOverlay, showPlayerStats, showFlagEditor, 
-    showSeriesStats, showSlideshow
+    showPlaying11,
+    showSummary,
+    showVenueInfo,
+    showWinPred,
+    showPartnershipOverlay,
+    showPlayerStats,
+    showFlagEditor,
+    showSeriesStats,
+    showSlideshow,
+    showRunRateGraph,
+    showManhattan,
+    showWorm,
+    showWagonSpike,
+    showPlayingXIOverlay,
   ]); // Dependencies added so the shortcut toggle always knows what is currently open
 
   // ==========================================
   // 🖱️ UI CLICK HANDLERS (Now mutually exclusive)
   // ==========================================
-  const handleFlagClick = () => { closeAllOverlays(); setShowFlagEditor(true); };
-  
+  const handleFlagClick = () => {
+    closeAllOverlays();
+    setShowFlagEditor(true);
+  };
+
   const handleSaveTheme = (newData) => {
     setTeam1Flag(newData.team1Flag);
     setTeam2Flag(newData.team2Flag);
@@ -113,24 +176,33 @@ const App = () => {
     setShowFlagEditor(false);
   };
 
-  const handlePlayerClick = (playerData) => { 
-    closeAllOverlays(); 
-    setSelectedPlayer(playerData); 
-    setShowPlayerStats(true); 
+  const handlePlayerClick = (playerData) => {
+    closeAllOverlays();
+    setSelectedPlayer(playerData);
+    setShowPlayerStats(true);
   };
-  
-  const handleOpenPlaying11 = (index) => { 
-    closeAllOverlays(); 
-    setTargetTeamIndex(index); 
-    setShowPlaying11(true); 
+
+  const handleOpenPlaying11 = (index) => {
+    closeAllOverlays();
+    setTargetTeamIndex(index);
+    setShowPlaying11(true);
   };
-  
+
   const handleClosePlaying11 = () => setShowPlaying11(false);
-  
-  const handleOpenVenueInfo = () => { closeAllOverlays(); setShowVenueInfo(true); };
-  const handleOpenMatchSummary = () => { closeAllOverlays(); setShowSummary(true); };
-  const handleWinPredictionClick = () => { closeAllOverlays(); setShowWinPred(true); };
-  
+
+  const handleOpenVenueInfo = () => {
+    closeAllOverlays();
+    setShowVenueInfo(true);
+  };
+  const handleOpenMatchSummary = () => {
+    closeAllOverlays();
+    setShowSummary(true);
+  };
+  const handleWinPredictionClick = () => {
+    closeAllOverlays();
+    setShowWinPred(true);
+  };
+
   const handleShowPartnershipOverlay = () => {
     if (showPartnershipOverlay) {
       setShowPartnershipOverlay(false);
@@ -150,16 +222,18 @@ const App = () => {
   };
 
   const sampleWinPrediction = {
-    projected_score: { rates: ['9.85*', '9.00', '10.00', '11.00'], scores: ['196', '193', '197', '202'] },
-    team_left: { name: 'KR', percent: 57 },
-    team_right: { name: 'CK', percent: 43 }
+    projected_score: {
+      rates: ["9.85*", "9.00", "10.00", "11.00"],
+      scores: ["196", "193", "197", "202"],
+    },
+    team_left: { name: "KR", percent: 57 },
+    team_right: { name: "CK", percent: 43 },
   };
 
   return (
     <div className="relative w-[1920px] h-[1080px] bg-transparent overflow-hidden flex flex-col">
-      
       {/* 🔴 HIDDEN TRIGGER FOR SLIDESHOW */}
-      <div 
+      <div
         className="absolute top-0 right-0 w-[50px] h-[50px] z-50 cursor-pointer"
         onClick={() => {
           if (showSlideshow) {
@@ -168,58 +242,83 @@ const App = () => {
             closeAllOverlays();
             setShowSlideshow(true);
           }
-        }} 
+        }}
         title="Hidden Trigger: Click to open Slideshow"
       />
 
-      <ScoreBanner 
-        onTeamClick={handleOpenPlaying11} 
-        onScoreClick={handleOpenVenueInfo} 
+      <ScoreBanner
+        onTeamClick={handleOpenPlaying11}
+        onScoreClick={handleOpenVenueInfo}
         team1Logo={team1Flag}
         team2Logo={team2Flag}
         themeColors={bannerTheme}
         onFlagClick={handleFlagClick}
       />
-      
+
       {showSlideshow ? (
         <ImageCarousel onClose={() => setShowSlideshow(false)} />
       ) : (
         <MainContentGrid>
-          <BattingStatsBoard 
-            onBatsmanClick={handleOpenMatchSummary} 
-            onRunClick={handleWinPredictionClick} 
-            onSrClick={handleShowPartnershipOverlay} 
-            onPlayerClick={handlePlayerClick} 
+          <BattingStatsBoard
+            onBatsmanClick={handleOpenMatchSummary}
+            onRunClick={handleWinPredictionClick}
+            onSrClick={handleShowPartnershipOverlay}
+            onPlayerClick={handlePlayerClick}
           />
           <LiveGraphicArea />
         </MainContentGrid>
       )}
-      
+
       <OversTimeline onSubscribeClick={handleShowSeriesStats} />
 
       {/* Overlays */}
       <AnimatePresence>
         {showPlaying11 && (
           <div className="absolute inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center">
-            <Playing11 initialTeam={targetTeamIndex} onClose={handleClosePlaying11} />
+            <Playing11
+              initialTeam={targetTeamIndex}
+              onClose={handleClosePlaying11}
+            />
           </div>
         )}
       </AnimatePresence>
 
-      <AnimatePresence>{showSummary && <MatchSummary onClose={() => setShowSummary(false)} />}</AnimatePresence>
-      <AnimatePresence>{showVenueInfo && <VenueInfoMatchDetails onClose={() => setShowVenueInfo(false)} />}</AnimatePresence>
-      <AnimatePresence>{showWinPred && <WinPrediction winPredictionData={sampleWinPrediction} onClose={() => setShowWinPred(false)} />}</AnimatePresence>
-      <AnimatePresence>{showPartnershipOverlay && <PartnershipOverlay />}</AnimatePresence>
-      <AnimatePresence>{showPlayerStats && selectedPlayer && <BatsmanStatsOverlay player={selectedPlayer} onClose={() => setShowPlayerStats(false)} />}</AnimatePresence>
+      <AnimatePresence>
+        {showSummary && <MatchSummary onClose={() => setShowSummary(false)} />}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showVenueInfo && (
+          <VenueInfoMatchDetails onClose={() => setShowVenueInfo(false)} />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showWinPred && (
+          <WinPrediction
+            winPredictionData={sampleWinPrediction}
+            onClose={() => setShowWinPred(false)}
+          />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showPartnershipOverlay && <PartnershipOverlay />}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showPlayerStats && selectedPlayer && (
+          <BatsmanStatsOverlay
+            player={selectedPlayer}
+            onClose={() => setShowPlayerStats(false)}
+          />
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {showFlagEditor && (
-          <FlagEditorModal 
-            currentTeam1={team1Flag} 
-            currentTeam2={team2Flag} 
+          <FlagEditorModal
+            currentTeam1={team1Flag}
+            currentTeam2={team2Flag}
             currentColors={bannerTheme}
-            onSave={handleSaveTheme} 
-            onClose={() => setShowFlagEditor(false)} 
+            onSave={handleSaveTheme}
+            onClose={() => setShowFlagEditor(false)}
           />
         )}
       </AnimatePresence>
@@ -229,7 +328,37 @@ const App = () => {
           <SeriesStatsModal onClose={() => setShowSeriesStats(false)} />
         )}
       </AnimatePresence>
-      
+
+      <AnimatePresence>
+        {showRunRateGraph && (
+          <RunRateOverlay onClose={() => setShowRunRateGraph(false)} />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showManhattan && (
+          <ManhattanOverlay onClose={() => setShowManhattan(false)} />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showWorm && <WormOverlay onClose={() => setShowWorm(false)} />}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showWagonSpike && (
+          <WagonSpikeOverlay onClose={() => setShowWagonSpike(false)} />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showPlayingXIOverlay && (
+          <PlayingXIOverlay
+            initialTeam={targetTeamIndex}
+            onClose={handleClosePlaying11}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
